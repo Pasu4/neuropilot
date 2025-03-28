@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { assert, logOutput, simpleFileName } from "./utils";
+import { logOutput, simpleFileName } from "./utils";
 import { NEURO } from './constants';
 
 export function sendCurrentFile() {

@@ -4,5 +4,8 @@
     "neuropilot.permission.runTasks": true,
     "neuropilot.permission.create": true,
     "neuropilot.permission.delete": true,
-    "neuropilot.permission.rename": true
+    "neuropilot.permission.rename": true,
+    "neuropilot.permission.gitRemotes": true,
+    "neuropilot.permission.gitOperations": true,
+    "neuropilot.permission.gitConfigs": true
 }

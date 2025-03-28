@@ -5,7 +5,8 @@ import { logOutput, createClient, onClientConnected } from './utils';
 import { completionsProvider, registerCompletionResultHandler } from './completions';
 import { giveCookie, registerRequestCookieAction, registerRequestCookieHandler, sendCurrentFile } from './context';
 import { registerChatParticipant, registerChatResponseHandler } from './chat';
-import { registerUnsupervisedActions, registerUnsupervisedHandlers, reloadTasks, taskEndedHandler } from './unsupervised';
+import { registerUnsupervisedActions, registerUnsupervisedHandlers } from './unsupervised';
+import { reloadTasks, taskEndedHandler } from './tasks';
 
 export function activate(context: vscode.ExtensionContext) {
     NEURO.url = vscode.workspace.getConfiguration('neuropilot').get('websocketUrl', 'http://localhost:8000');
