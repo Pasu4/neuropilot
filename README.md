@@ -2,7 +2,9 @@
 
 ![Demo GIF](demo.gif)
 
-This extension lets Neuro-sama suggest code for you similar to GitHub Copilot.
+**Disclaimer: For simplicity, all mentions of Neuro also apply to Evil unless otherwise stated.**
+
+This extension lets Neuro-sama suggest code for you similar to GitHub Copilot, or code on her own.
 If you don't have a Neuro-sama, you can use tools like [Randy](https://github.com/VedalAI/neuro-game-sdk/tree/main/Randy), [Tony](https://github.com/Pasu4/neuro-api-tony) or [Jippity](https://github.com/EnterpriseScratchDev/neuro-api-jippity).
 If you are using Tony, activating auto-answer is recommended, since completion requests are canceled if you click out of VS Code.
 
@@ -18,15 +20,17 @@ If you enable it, this extension **can**:
 - let Neuro create, rename and delete files in the workspace.
 - let Neuro run pre-defined tasks.
 - let Neuro interact with the git repository, if one is present in the open workspace.
+- give Neuro direct terminal access.
+- let Neuro read what you type in real time.
 - let Neuro view linting diagnostics, and be updated on linting diagnostics as they come in.
 
 This extension **will not**:
 
-- let Neuro read what you type in real time, unless you enable it in the settings.
-- give Neuro direct terminal access, unless you enable it and specify shells she is allowed to run.
-- allow Neuro to change global git configurations.
+- allow Neuro to change global git configurations (except with direct terminal access).
 
 ## How to use
+
+### Inline Suggestions & Chat
 
 After installing the extension, you should add a keyboard shortcut for "Trigger Inline Suggestion" (`editor.action.inlineSuggest.trigger`) if you haven't already.
 Once you are in a file, place your cursor where you want the new code to be inserted and trigger a suggestion.
@@ -48,6 +52,8 @@ Simply paste this into your `settings.json` file:
 On startup, the extension will immediately try to establish a connection to the API.
 If the extension was started before the API was ready, or you lose connection to the API, you can use the command "NeuroPilot: Reconnect" from the Command Palette.
 
+### Unsupervised Coding
+
 To make Neuro able to code unsupervised, go to the extension settings and activate the necessary permissions, then run the command "NeuroPilot: Reload Permissions" from the Command Palette.
 It is recommended to turn on auto-saving in the settings for this, however Neuro also has the ability to manually save, and will be notified if a file saved.
 Tasks that Neuro can run are loaded from `tasks.json`, but it requires some setup for Neuro to use them.
@@ -67,25 +73,29 @@ Neuro cannot open, edit, or otherwise access files or folders that start with a 
 This is mainly to prevent her from opening `.vscode/tasks.json` to essentially run arbitrary commands in the terminal.
 **Warning: If your workspace is inside such a folder, Neuro will not be able to edit *any* files!**
 
+Note that if Neuro has direct terminal access, all security features are pretty much out the window.
+
 ## Commands
 
 ### Give Cookie
 
-Gives a cookie to Neuro.
+Gives a cookie to Neuro (it tells her that Vedal gave her a cookie).
 
 ### Reconnect
 
 Attempts to reconnect to the API.
 Shows a notification when it succeeds or fails.
 
-### Reload permissions
+### Reload Permissions
 
 Reregisters all actions according to the permissions.
+Running this command is required if you change any of the permissions.
 
-### Disable all permissions
+### Disable All Permissions
 
-Disable all permissions for Neuro immediately and reloads permissions. Also kills currently running tasks and any open shells.
-Since it's intended to be a panic button, it is recommended to bind that command to a keyboard shortcut.
+Disable all permissions for Neuro immediately and unregister the actions.
+Also kills currently running tasks and any shells opened by Neuro.
+Since it's intended to be a panic button, it is recommended to bind this command to a keyboard shortcut.
 
 ### Send File As Context
 
@@ -93,68 +103,84 @@ Sends the entire current file as context to Neuro, along with the file name and 
 
 ## Actions
 
+The following are all actions that Neuro has access to.
+Note that Neuro can only use an action if the relevant permission is enabled.
+
 ### Tasks
 
-Neuro has access to the following actions.
-Tasks that Neuro can run are registered as additional actions.
+Tasks that Neuro can run are registered as additional actions with the normalized label of the task as the action name.
+The task's `detail` becomes the action description if it exists, otherwise the task label is used.
 Neuro can only run one task at a time.
 
 #### `terminate_task`
 
-*Requires Permission: Run Tasks.*
+*Requires Permission: [Run Tasks](vscode://settings/neuropilot.permission.runTasks).*
+
 Terminates the currently running task that was started using a task action.
 
 ### File Interactions
 
+Actions that allow Neuro to view and edit files in the workspace.
+
 #### `get_files`
 
-*Requires Permission: Open files.*
+*Requires Permission: [Open files](vscode://settings/neuropilot.permission.openFiles).*
+
 Gets a list of files in the workspace.
+What files Neuro can see can be configured with the settings [Include Pattern](vscode://settings/neuropilot.includePattern) and [Exclude Pattern](vscode://settings/neuropilot.excludePattern).
 The files are returned as paths relative to the workspace root.
 
 #### `open_file`
 
-*Requires Permission: Open files.*
+*Requires Permission: [Open files](vscode://settings/neuropilot.permission.openFiles).*
+
 Opens a file inside the workspace (or focuses it if it is already open) and sends its contents to Neuro.
 
 #### `place_cursor`
 
-*Requires Permission: Edit Active Document.*
+*Requires Permission: [Edit Active Document](vscode://settings/neuropilot.permission.editActiveDocument).*
+
 Places the cursor at the specified line and column or moves the cursor by the specified number of lines and columns.
 
 #### `get_cursor`
 
-*Requires Permission: Edit Active Document.*
+*Requires Permission: [Edit Active Document](vscode://settings/neuropilot.permission.editActiveDocument).*
+
 Returns the current cursor position, as well as the lines before and after the cursor.
 The number of lines returned can be controlled with the settings `neuropilot.beforeContext` and `neuropilot.afterContext`.
 
 #### `insert_text`
 
-*Requires Permission: Edit Active Document.*
+*Requires Permission: [Edit Active Document](vscode://settings/neuropilot.permission.editActiveDocument).*
+
 Inserts text at the current cursor position and places the cursor after the inserted text.
 
 #### `replace_text`
 
-*Requires Permission: Edit Active Document.*
+*Requires Permission: [Edit Active Document](vscode://settings/neuropilot.permission.editActiveDocument).*
+
 Searches the current file for a search string or regex and replaces it.
 If using regex, the replacement can use substitution patterns.
 If only one instance is replaced, places the cursor after the inserted text.
 
 #### `delete_text`
 
-*Requires Permission: Edit Active Document.*
+*Requires Permission: [Edit Active Document](vscode://settings/neuropilot.permission.editActiveDocument).*
+
 Searches the current file for a search string or regex and deletes it.
 If only one instance is deleted, places the cursor where the text was.
 
 #### `find_text`
 
-*Requires Permission: Edit Active Document.*
+*Requires Permission: [Edit Active Document](vscode://settings/neuropilot.permission.editActiveDocument).*
+
 Searches the current file for a search string or regex.
 Depending on the match mode, places the cursor at the location or returns all lines with matches.
 
 #### `undo`
 
-*Requires Permission: Edit Active Document.*
+*Requires Permission: [Edit Active Document](vscode://settings/neuropilot.permission.editActiveDocument).*
+
 Undoes the last editing action.
 Only works if VS Code is focused.
 
@@ -166,183 +192,220 @@ Only registered if the `Files > Auto Save` setting isn't set to `afterDelay`.
 
 #### `create_file`
 
-*Requires Permission: Create.*
+*Requires Permission: [Create](vscode://settings/neuropilot.permission.create).*
+
 Creates a new file in the workspace.
 If *Permission: Open Files* is given, the file is immediately opened.
 The file name cannot start with a dot, and cannot be created in a folder that starts with a dot.
 
 #### `create_folder`
 
-*Requires Permission: Create.*
+*Requires Permission: [Create](vscode://settings/neuropilot.permission.create).*
+
 Creates a new folder in the workspace.
 A folder starting with a dot cannot be created this way.
 
 #### `rename_file_or_folder`
 
-*Requires Permission: Rename.*
+*Requires Permission: [Rename](vscode://settings/neuropilot.permission.rename).*
+
 Renames a file or folder in the workspace.
 By default his cannot rename to or from a name starting with a dot, or within a folder that starts with a dot.
 
 #### `delete_file_or_folder`
 
-*Requires Permission: Delete.*
+*Requires Permission: [Delete](vscode://settings/neuropilot.permission.delete).*
+
 Deletes a file or folder in the workspace.
 By default, this cannot delete anything starting with a dot, or inside a folder starting with a dot.
 
-### Git interactions
+### Git Interactions
+
+Actions that allow Neuro to use Git for version control.
 
 #### `init_git_repo`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Initialises a Git repository in the workspace folder and registers git commands.
 
 #### `add_file_to_git`
 
-*Requires Permission: Git Operations.*
-Add a file to Git's staging index
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
+Adds a file to Git's staging index.
 
 #### `remove_file_from_git`
 
-*Requires Permission: Git Operations.*
-Remove a file from Git's staging index
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
+Removes a file from Git's staging index.
 
 #### `make_git_commit`
 
-*Requires Permission: Git Operations.*
-Makes a commit. Messsages are prefixed to differentiate between Neuro committing and the user committing.
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
+Makes a commit. Messages are prefixed to differentiate between Neuro committing and the user committing.
 
 #### `git_status`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Returns the current status of the workspace.
 
 #### `diff_files`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Returns the diff between files.
 
 #### `merge_to_current_branch`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Merges another branch into the current branch.
 
 #### `abort_merge`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 *Note: This is only registered if a merge failed to happen cleanly*
 Aborts a merge currently in progress.
 
 #### `git_log`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Returns the commit history of the current branch.
 
 #### `git_blame`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Returns commit attributions for each line in a file.
 
 #### `tag_head`
 
-*Requires Permission: Git Operations & Git Tags.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations) & [Git Tags](vscode://settings/neuropilot.permission.gitTags).*
+
 Tags the commit currently at HEAD.
 
 #### `delete_tag`
 
-*Requires Permission: Git Operations & Git Tags.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations) & [Git Tags](vscode://settings/neuropilot.permission.gitTags).*
+
 Deletes an existing tag.
 
 #### `new_git_branch`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Creates a new git branch and switches to it.
 
 #### `switch_git_branch`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Switches to an existing branch.
 
 #### `delete_git_branch`
 
-*Requires Permission: Git Operations.*
+*Requires Permission: [Git Operations](vscode://settings/neuropilot.permission.gitOperations).*
+
 Deletes a branch from the repository.
 
 #### `fetch_git_commits`
 
-*Requires Permissions: Git Operations & Git Remotes.*
+*Requires Permissions: [Git Operations](vscode://settings/neuropilot.permission.gitOperations) & [Git Remotes](vscode://settings/neuropilot.permission.gitRemotes).*
+
 Fetches info about missing commits from the specified/default remote.
 
 #### `pull_git_commits`
 
-*Requires Permissions: Git Operations & Git Remotes.*
+*Requires Permissions: [Git Operations](vscode://settings/neuropilot.permission.gitOperations) & [Git Remotes](vscode://settings/neuropilot.permission.gitRemotes).*
+
 Pulls new git commits from the specified/default remote.
 
 #### `push_git_commits`
 
-*Requires Permissions: Git Operations & Git Remotes.*
+*Requires Permissions: [Git Operations](vscode://settings/neuropilot.permission.gitOperations) & [Git Remotes](vscode://settings/neuropilot.permission.gitRemotes).*
+
 Pushes unpublished commits to the remote server. If a remote branch is not set as the upstream, this will automatically do so.
 
 #### `add_git_remote`
 
-*Requires Permissions: Git Operations, Git Remotes & Edit Remote Data.*
+*Requires Permissions: [Git Operations](vscode://settings/neuropilot.permission.gitOperations), [Git Remotes](vscode://settings/neuropilot.permission.gitRemotes) & [Edit Remote Data](vscode://settings/neuropilot.permission.editRemoteData).*
+
 Adds a new git remote.
 
 #### `remove_git_remote`
 
-*Requires Permissions: Git Operations, Git Remotes & Edit Remote Data.*
+*Requires Permissions: [Git Operations](vscode://settings/neuropilot.permission.gitOperations), [Git Remotes](vscode://settings/neuropilot.permission.gitRemotes) & [Edit Remote Data](vscode://settings/neuropilot.permission.editRemoteData).*
+
 Removes a git remote.
 
 #### `rename_git_remote`
 
-*Requires Permissions: Git Operations, Git Remotes & Edit Remote Data.*
+*Requires Permissions: [Git Operations](vscode://settings/neuropilot.permission.gitOperations), [Git Remotes](vscode://settings/neuropilot.permission.gitRemotes) & [Edit Remote Data](vscode://settings/neuropilot.permission.editRemoteData).*
+
 Renames a git remote. This only changes the name of the remote, not the location.
 
 #### `get_git_config`
 
-*Requires Permissions: Git Operations & Git Config.*
+*Requires Permissions: [Git Operations](vscode://settings/neuropilot.permission.gitOperations) & [Git Configs](vscode://settings/neuropilot.permission.gitConfigs).*
+
 Gets a key's value from the git configuration. Neuro can only see the repository's configurations, never global configs.
 If no key is specified, returns the entire git config.
 
 #### `set_git_config`
 
-*Requires Permissions: Git Operations & Git Config.*
+*Requires Permissions: [Git Operations](vscode://settings/neuropilot.permission.gitOperations) & [Git Configs](vscode://settings/neuropilot.permission.gitConfigs).*
+
 Sets a key's value in the git configuration. Neuro can only change the repository's configurations, never global configs.
 
-### Shell interactions
+### Shell Interactions
+
+Actions that allow Neuro to directly access the terminal.
+Needless to say, this is very dangerous and circumvents pretty much all security measures built into the extension.
 
 #### `execute_in_terminal`
 
-*Requires Permissions: Terminal Access.*
+*Requires Permission: [Terminal Access](vscode://settings/neuropilot.permission.terminalAccess).*
+
 Executes a command into a shell process. The available shell processes can be configured in extension settings.
 If the terminal isn't already running, it will also initialise a terminal instance with the specified shell.
 
 #### `kill_terminal_process`
 
-*Requires Permissions: Terminal Access.*
+*Requires Permission: [Terminal Access](vscode://settings/neuropilot.permission.terminalAccess).*
+
 Kills a running shell. If a shell isn't already running, Neuro will be notified.
 
 #### `get_currently_running_shells`
 
-*Requires Permissions: Terminal Access.*
+*Requires Permission: [Terminal Access](vscode://settings/neuropilot.permission.terminalAccess).*
+
 Returns the list of currently running shells to Neuro.
 
 ### Linting
 
+Actions that let Neuro see linting problems reported by other extensions.
+
 #### `get_file_lint_problems`
 
-*Requires Permissions: Access Linting Problems.*
+*Requires Permissions: [Access Linting Analysis](vscode://settings/neuropilot.permission.accessLintingAnalysis).*
 Returns the linting diagnostics list of a file to Neuro.
 The file must have been loaded first before diagnostics are available.
 
 #### `get_folder_lint_problems`
 
-*Requires Permissions: Access Linting Problems.*
+*Requires Permissions: [Access Linting Analysis](vscode://settings/neuropilot.permission.accessLintingAnalysis).*
 Returns the linting diagnostics list of a folder's files to Neuro.
 Note that this only returns diagnostics of files in that folder that are loaded in the current session.
 
 #### `get_workspace_lint_problems`
 
-*Requires Permissions: Access Linting Problems.*
+*Requires Permissions: [Access Linting Analysis](vscode://settings/neuropilot.permission.accessLintingAnalysis).*
 Returns the linting diagnostics list of the current workspace to Neuro.
 Note that this only returns diagnostics of files that are loaded in the current session.
 
