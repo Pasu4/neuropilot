@@ -54,6 +54,11 @@
 				"command": "neuropilot.disableAllPermissions",
 				"title": "Disable All Permissions",
 				"category": "NeuroPilot"
+			},
+			{
+				"command": "neuropilot.openRceDialog",
+				"title": "Open RCE Dialog",
+				"category": "NeuroPilot"
 			}
 		],
 		"configuration": [
@@ -172,73 +177,213 @@
 						]
 					},
 					"neuropilot.permission.openFiles": {
-						"type": "boolean",
-						"default": false,
-						"markdownDescription": "Let Neuro open files in the workspace. For security reasons, Neuro cannot open anything that starts with a dot or has a parent folder that starts with a dot (e.g. `.git`, `.vscode`, ...).\n\nRequires reloading permissions if changed."
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
+						"markdownDescription": "Let Neuro open files in the workspace. For security reasons, Neuro cannot open anything that starts with a dot or has a parent folder that starts with a dot (e.g. `.git`, `.vscode`, ...), unless you enable Allow Unsafe Paths.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.editActiveDocument": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Let Neuro edit the active file directly.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.create": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Let Neuro create new files and folders in the workspace.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.rename": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Let Neuro rename files and folders in the workspace.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.delete": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Let Neuro delete files and folders in the workspace.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.runTasks": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Let Neuro run workspace tasks defined in `tasks.json`.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.requestCookies": {
-						"type": "boolean",
-						"default": true,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Neuro may ask for cookies while coding.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.gitOperations": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Allow Neuro to perform Git operations in the workspace.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.gitTags": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Allow Neuro to create and delete tags in Git repositories.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.gitRemotes": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Allow Neuro to push, pull and fetch commits.\nAlso requires Git Operations permission to be enabled.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.editRemoteData": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Allow Neuro to add, remove and rename remotes.\nAlso requires Git Operations & Git Remotes permissions to be enabled.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.gitConfigs": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Allow Neuro to view and edit Git configuration in the workspace.\nAlso requires Git Operations permission to be enabled.\n\nRequires reloading permissions if changed."
 					},
 					"neuropilot.permission.terminalAccess": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Allow Neuro __direct terminal access__. Be very careful with this."
 					},
 					"neuropilot.permission.accessLintingAnalysis": {
-						"type": "boolean",
-						"default": false,
+						"type": "string",
+						"default": "Off",
+						"enum": [
+							"Off",
+							"Copilot",
+							"Autopilot"
+						],
+						"enumDescriptions": [
+							"Disable this permission.",
+							"Require approval before execution.",
+							"Execute without oversight."
+						],
 						"markdownDescription": "Allow Neuro to get access to linting problems within loaded files."
 					},
 					"neuropilot.showTimeOnTerminalStart": {
@@ -280,10 +425,24 @@
 						"type": "boolean",
 						"default": true,
 						"markdownDescription": "Automatically send save notifications to Neuro, as long as the auto-save setting is set to a value other than `off`."
+					},
+					"neuropilot.requestExpiryTimeout": {
+						"type": "number",
+						"default": 0,
+						"markdownDescription": "The time to wait (in milliseconds) before automatically rejecting Copilot-mode action requests from Neuro.\nSetting this to 0 will cause the requests to never expire."
 					}
 				}
 			}
-		]
+		],
+		"icons": {
+			"neuropilot-logo": {
+				"description": "NeuroPilot logo",
+				"default": {
+					"fontPath": "icons.woff",
+					"fontCharacter": "\\E900"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -309,6 +468,7 @@
 	},
 	"dependencies": {
 		"glob-to-regexp": "^0.4.1",
+		"jsonschema": "^1.5.0",
 		"neuro-game-sdk": "github:AriesAlex/typescript-neuro-game-sdk#49a4a711e031447bcf4c9e5bd8caab3922ed02b5"
 	}
 }

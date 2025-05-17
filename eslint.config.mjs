@@ -27,8 +27,8 @@ export default tseslint.config(
         rules: {
             'curly': 'off',
             'no-control-regex': 'off',
-            '@stylistic/semi': ['warn', 'always'],
-            '@stylistic/indent': ['error', 4],
+            '@stylistic/semi': ['error', 'always'],
+            '@stylistic/indent': ['warn', 4],
             '@stylistic/comma-dangle': ['warn', 'always-multiline'],
             '@stylistic/eol-last': ['warn', 'always'],
             '@stylistic/no-extra-parens': ['warn', 'all'],
@@ -43,7 +43,7 @@ export default tseslint.config(
                 },
             ],
             '@typescript-eslint/no-unused-vars': [
-                'error',
+                'warn',
                 {
                     'argsIgnorePattern': '^_',
                 },

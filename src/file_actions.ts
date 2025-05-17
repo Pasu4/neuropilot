@@ -2,117 +2,129 @@ import * as vscode from 'vscode';
 
 import { NEURO } from './constants';
 import { combineGlobLines, filterFileContents, getFence, getWorkspacePath, isPathNeuroSafe, logOutput, normalizePath } from './utils';
-import { ActionData, ActionResult, actionResultAccept, actionResultFailure, actionResultMissingParameter, actionResultNoAccess, actionResultNoPermission } from './neuro_client_helper';
-import { CONFIG, PERMISSIONS, hasPermissions } from './config';
+import { ActionData, contextNoAccess, ActionWithHandler, contextFailure } from './neuro_client_helper';
+import { CONFIG, PERMISSIONS, getPermissionLevel } from './config';
 
-export const fileActionHandlers: Record<string, (actionData: ActionData) => ActionResult> = {
-    'get_files': handleGetFiles,
-    'open_file': handleOpenFile,
-    'create_file': handleCreateFile,
-    'create_folder': handleCreateFolder,
-    'rename_file_or_folder': handleRenameFileOrFolder,
-    'delete_file_or_folder': handleDeleteFileOrFolder,
-};
+export const fileActions = {
+    get_files: {
+        name: 'get_files',
+        description: 'Get a list of files in the workspace',
+        permissions: [PERMISSIONS.openFiles],
+        handler: handleGetFiles,
+        promptGenerator: 'Neuro wants to get a list of files in the workspace.',
+    },
+    open_file: {
+        name: 'open_file',
+        description: 'Open a file in the workspace',
+        schema: {
+            type: 'object',
+            properties: {
+                path: { type: 'string' },
+            },
+            required: ['path'],
+        },
+        permissions: [PERMISSIONS.openFiles],
+        handler: handleOpenFile,
+        promptGenerator: (actionData: ActionData) => `Neuro wants to open the file "${actionData.params?.path}".`,
+    },
+    create_file: {
+        name: 'create_file',
+        description: 'Create a new file at the specified path. The path should include the name of the new file.',
+        schema: {
+            type: 'object',
+            properties: {
+                filePath: { type: 'string' },
+            },
+            required: ['filePath'],
+        },
+        permissions: [PERMISSIONS.create],
+        handler: handleCreateFile,
+        promptGenerator: (actionData: ActionData) => `Neuro wants to create the file "${actionData.params?.filePath}".`,
+    },
+    create_folder: {
+        name: 'create_folder',
+        description: 'Create a new folder at the specified path. The path should include the name of the new folder.',
+        schema: {
+            type: 'object',
+            properties: {
+                folderPath: { type: 'string' },
+            },
+            required: ['folderPath'],
+        },
+        permissions: [PERMISSIONS.create],
+        handler: handleCreateFolder,
+        promptGenerator: (actionData: ActionData) => `Neuro wants to create the folder "${actionData.params?.folderPath}".`,
+    },
+    rename_file_or_folder: {
+        name: 'rename_file_or_folder',
+        description: 'Rename a file or folder. Specify the full relative path for both the old and new names.',
+        schema: {
+            type: 'object',
+            properties: {
+                oldPath: { type: 'string' },
+                newPath: { type: 'string' },
+            },
+            required: ['oldPath', 'newPath'],
+        },
+        permissions: [PERMISSIONS.rename],
+        handler: handleRenameFileOrFolder,
+        promptGenerator: (actionData: ActionData) => `Neuro wants to rename "${actionData.params?.oldPath}" to "${actionData.params?.newPath}".`,
+    },
+    delete_file_or_folder: {
+        name: 'delete_file_or_folder',
+        description: 'Delete a file or folder. If you want to delete a folder, set the "recursive" parameter to true.',
+        schema: {
+            type: 'object',
+            properties: {
+                pathToDelete: { type: 'string' },
+                recursive: { type: 'boolean' },
+            },
+            required: ['pathToDelete'],
+        },
+        permissions: [PERMISSIONS.delete],
+        handler: handleDeleteFileOrFolder,
+        promptGenerator: (actionData: ActionData) => `Neuro wants to delete "${actionData.params?.pathToDelete}".`,
+    },
+} satisfies Record<string, ActionWithHandler>;
 
 export function registerFileActions() {
-    if(hasPermissions(PERMISSIONS.openFiles)) {
+    if(getPermissionLevel(PERMISSIONS.openFiles)) {
         NEURO.client?.registerActions([
-            {
-                name: 'get_files',
-                description: 'Get a list of files in the workspace',
-            },
-            {
-                name: 'open_file',
-                description: 'Open a file in the workspace',
-                schema: {
-                    type: 'object',
-                    properties: {
-                        path: { type: 'string' },
-                    },
-                    required: ['path'],
-                },
-            },
+            fileActions.get_files,
+            fileActions.open_file,
         ]);
     }
 
-    if(hasPermissions(PERMISSIONS.create)) {
+    if(getPermissionLevel(PERMISSIONS.create)) {
         NEURO.client?.registerActions([
-            {
-                name: 'create_file',
-                description: 'Create a new file at the specified path. The path should include the name of the new file.',
-                schema: {
-                    type: 'object',
-                    properties: {
-                        filePath: { type: 'string' },
-                    },
-                    required: ['filePath'],
-                },
-            },
-            {
-                name: 'create_folder',
-                description: 'Create a new folder at the specified path. The path should include the name of the new folder.',
-                schema: {
-                    type: 'object',
-                    properties: {
-                        folderPath: { type: 'string' },
-                    },
-                    required: ['folderPath'],
-                },
-            },
+            fileActions.create_file,
+            fileActions.create_folder,
         ]);
     }
 
-    if(hasPermissions(PERMISSIONS.rename)) {
+    if(getPermissionLevel(PERMISSIONS.rename)) {
         NEURO.client?.registerActions([
-            {
-                name: 'rename_file_or_folder',
-                description: 'Rename a file or folder. Specify the full relative path for both the old and new names.',
-                schema: {
-                    type: 'object',
-                    properties: {
-                        oldPath: { type: 'string' },
-                        newPath: { type: 'string' },
-                    },
-                    required: ['oldPath', 'newPath'],
-                },
-            },
+            fileActions.rename_file_or_folder,
         ]);
     }
 
-    if(hasPermissions(PERMISSIONS.delete)) {
+    if(getPermissionLevel(PERMISSIONS.delete)) {
         NEURO.client?.registerActions([
-            {
-                name: 'delete_file_or_folder',
-                description: 'Delete a file or folder. If you want to delete a folder, set the "recursive" parameter to true.',
-                schema: {
-                    type: 'object',
-                    properties: {
-                        pathToDelete: { type: 'string' },
-                        recursive: { type: 'boolean' },
-                    },
-                    required: ['pathToDelete'],
-                },
-            },
+            fileActions.delete_file_or_folder,
         ]);
     }
 }
 
-export function handleCreateFile(actionData: ActionData): ActionResult {
-    if(!hasPermissions(PERMISSIONS.create))
-        return actionResultNoPermission(PERMISSIONS.create);
-
-    const relativePathParam = actionData.params?.filePath;
-    if(relativePathParam === undefined)
-        return actionResultMissingParameter('filePath');
-
+export function handleCreateFile(actionData: ActionData): string | undefined {
+    const relativePathParam = actionData.params.filePath;
     const relativePath = normalizePath(relativePathParam).replace(/^\//, '');
     const absolutePath = getWorkspacePath() + '/' + relativePath;
     if(!isPathNeuroSafe(absolutePath))
-        return actionResultNoAccess(absolutePath);
+        return contextNoAccess(absolutePath);
 
     checkAndOpenFileAsync(absolutePath, relativePath);
 
-    return actionResultAccept();
+    return;
 
     // Function to avoid pyramid of doom
     async function checkAndOpenFileAsync(absolutePath: string, relativePath: string) {
@@ -139,7 +151,7 @@ export function handleCreateFile(actionData: ActionData): ActionResult {
         NEURO.client?.sendContext(`Created file ${relativePath}`);
 
         // Open the file if Neuro has permission to do so
-        if(!hasPermissions(PERMISSIONS.openFiles))
+        if(!getPermissionLevel(PERMISSIONS.openFiles))
             return;
 
         try {
@@ -153,22 +165,16 @@ export function handleCreateFile(actionData: ActionData): ActionResult {
     }
 }
 
-export function handleCreateFolder(actionData: ActionData): ActionResult {
-    if(!hasPermissions(PERMISSIONS.create))
-        return actionResultNoPermission(PERMISSIONS.create);
-
-    const relativePathParam = actionData.params?.folderPath;
-    if(relativePathParam === undefined)
-        return actionResultMissingParameter('folderPath');
-
+export function handleCreateFolder(actionData: ActionData): string | undefined {
+    const relativePathParam = actionData.params.folderPath;
     const relativePath = normalizePath(relativePathParam).replace(/^\/|\/$/g, '');
     const absolutePath = getWorkspacePath() + '/' + relativePath;
     if(!isPathNeuroSafe(absolutePath))
-        return actionResultNoAccess(absolutePath);
+        return contextNoAccess(absolutePath);
 
     checkAndCreateFolderAsync(absolutePath, relativePath);
 
-    return actionResultAccept();
+    return;
 
     // Function to avoid pyramid of doom
     async function checkAndCreateFolderAsync(absolutePath: string, relativePath: string) {
@@ -196,29 +202,23 @@ export function handleCreateFolder(actionData: ActionData): ActionResult {
     }
 }
 
-export function handleRenameFileOrFolder(actionData: ActionData): ActionResult {
-    if(!hasPermissions(PERMISSIONS.rename))
-        return actionResultNoPermission(PERMISSIONS.rename);
-
-    const oldRelativePathParam = actionData.params?.oldPath;
-    const newRelativePathParam = actionData.params?.newPath;
-    if(oldRelativePathParam === undefined)
-        return actionResultMissingParameter('oldPath');
-    if(newRelativePathParam === undefined)
-        return actionResultMissingParameter('newPath');
+export function handleRenameFileOrFolder(actionData: ActionData): string | undefined {
+    const oldRelativePathParam = actionData.params.oldPath;
+    const newRelativePathParam = actionData.params.newPath;
 
     const oldRelativePath = normalizePath(oldRelativePathParam).replace(/^\/|\/$/g, '');
     const newRelativePath = normalizePath(newRelativePathParam).replace(/^\/|\/$/g, '');
     const oldAbsolutePath = getWorkspacePath() + '/' + oldRelativePath;
     const newAbsolutePath = getWorkspacePath() + '/' + newRelativePath;
+
     if(!isPathNeuroSafe(oldAbsolutePath))
-        return actionResultNoAccess(oldAbsolutePath);
+        return contextNoAccess(oldAbsolutePath);
     if(!isPathNeuroSafe(newAbsolutePath))
-        return actionResultNoAccess(newAbsolutePath);
+        return contextNoAccess(newAbsolutePath);
 
     checkAndRenameAsync(oldAbsolutePath, oldRelativePath, newAbsolutePath, newRelativePath);
 
-    return actionResultAccept();
+    return;
 
     // Function to avoid pyramid of doom
     async function checkAndRenameAsync(oldAbsolutePath: string, oldRelativePath: string, newAbsolutePath: string, newRelativePath: string) {
@@ -247,23 +247,18 @@ export function handleRenameFileOrFolder(actionData: ActionData): ActionResult {
     }
 }
 
-export function handleDeleteFileOrFolder(actionData: ActionData): ActionResult {
-    if(!hasPermissions(PERMISSIONS.delete))
-        return actionResultNoPermission(PERMISSIONS.delete);
-
-    const relativePathParam = actionData.params?.pathToDelete;
-    const recursive = actionData.params?.recursive ?? false;
-    if(relativePathParam === undefined)
-        return actionResultMissingParameter('pathToDelete');
+export function handleDeleteFileOrFolder(actionData: ActionData): string | undefined {
+    const relativePathParam = actionData.params.pathToDelete;
+    const recursive = actionData.params.recursive ?? false;
 
     const relativePath = normalizePath(relativePathParam).replace(/^\/|\/$/g, '');
     const absolutePath = getWorkspacePath() + '/' + relativePath;
     if(!isPathNeuroSafe(absolutePath))
-        return actionResultNoAccess(absolutePath);
+        return contextNoAccess(absolutePath);
 
     checkAndDeleteAsync(absolutePath, relativePath, recursive);
 
-    return actionResultAccept();
+    return;
 
     // Function to avoid pyramid of doom
     async function checkAndDeleteAsync(absolutePath: string, relativePath: string, recursive: boolean) {
@@ -298,13 +293,10 @@ export function handleDeleteFileOrFolder(actionData: ActionData): ActionResult {
     }
 }
 
-export function handleGetFiles(_actionData: ActionData): ActionResult {
-    if(!hasPermissions(PERMISSIONS.openFiles))
-        return actionResultNoPermission(PERMISSIONS.openFiles);
-
+export function handleGetFiles(_actionData: ActionData): string | undefined {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if(workspaceFolder === undefined)
-        return actionResultFailure('No open workspace to get files from.');
+        return contextFailure('No open workspace to get files from.');
 
     const includePattern = combineGlobLines(CONFIG.includePattern || '**');
     const excludePattern = combineGlobLines(CONFIG.excludePattern || '');
@@ -330,21 +322,14 @@ export function handleGetFiles(_actionData: ActionData): ActionResult {
             NEURO.client?.sendContext(`Files in workspace:\n\n${paths.join('\n')}`);
         },
     );
-
-    return actionResultAccept();
 }
 
-export function handleOpenFile(actionData: ActionData): ActionResult {
-    if(!hasPermissions(PERMISSIONS.openFiles))
-        return actionResultNoPermission(PERMISSIONS.openFiles);
-
-    const relativePath = actionData.params?.path;
-    if(relativePath === undefined)
-        return actionResultMissingParameter('path');
+export function handleOpenFile(actionData: ActionData): string | undefined {
+    const relativePath = actionData.params.path;
 
     const uri = vscode.Uri.file(getWorkspacePath() + '/' + normalizePath(relativePath));
     if(!isPathNeuroSafe(uri.fsPath))
-        return actionResultNoAccess(uri.fsPath);
+        return contextNoAccess(uri.fsPath);
 
     vscode.workspace.openTextDocument(uri).then(
         (document) => {
@@ -356,11 +341,9 @@ export function handleOpenFile(actionData: ActionData): ActionResult {
             const fence = getFence(text);
             NEURO.client?.sendContext(`Opened file ${relativePath}\n\nContent (cursor position denoted by \`<<<|>>>\`):\n\n${fence}${document.languageId}\n${filterFileContents(text)}\n${fence}`);
         },
-        (_erm) => {
+        () => {
             logOutput('ERROR', `Failed to open file ${relativePath}`);
             NEURO.client?.sendContext(`Failed to open file ${relativePath}`);
         },
     );
-
-    return actionResultAccept();
 }

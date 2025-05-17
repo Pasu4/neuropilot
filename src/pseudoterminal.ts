@@ -2,46 +2,54 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { NEURO } from './constants';
 import { TerminalSession, logOutput, delayAsync, getFence } from './utils';
-import { ActionData, ActionResult, actionResultAccept, actionResultEnumFailure, actionResultFailure, actionResultMissingParameter, actionResultNoPermission } from './neuro_client_helper';
-import { CONFIG, PERMISSIONS, hasPermissions } from './config';
+import { ActionData, ActionWithHandler, contextFailure } from './neuro_client_helper';
+import { CONFIG, PERMISSIONS, getPermissionLevel } from './config';
 
-export const terminalAccessHandlers: Record<string, (actionData: ActionData) => ActionResult> = {
-    'execute_in_terminal': handleRunCommand,
-    'kill_terminal_process': handleKillTerminal,
-    'get_currently_running_shells': handleGetCurrentlyRunningShells,
-};
+export const terminalAccessHandlers = {
+    'execute_in_terminal': {
+        name: 'execute_in_terminal',
+        description: 'Run a command directly in the terminal',
+        schema: {
+            type: 'object',
+            properties: {
+                command: { type: 'string' },
+                shell: { type: 'string', enum: getAvailableShellProfileNames() },
+            },
+            required: ['command', 'shell'],
+        },
+        permissions: [PERMISSIONS.terminalAccess],
+        handler: handleRunCommand,
+        promptGenerator: (actionData: ActionData) => `Neuro wants to run "${actionData.params?.command}" in the "${actionData.params?.shell}" shell.`,
+    },
+    'kill_terminal_process': {
+        name: 'kill_terminal_process',
+        description: 'Kill a terminal process that is running.',
+        schema: {
+            type: 'object',
+            properties: {
+                shell: { type: 'string' },
+            },
+            required: ['shell'],
+        },
+        permissions: [PERMISSIONS.terminalAccess],
+        handler: handleKillTerminal,
+        promptGenerator: (actionData: ActionData) => `Neuro wants to kill the "${actionData.params?.shell}" shell.`,
+    },
+    'get_currently_running_shells': {
+        name: 'get_currently_running_shells',
+        description: 'Get the list of terminal processes that are spawned.',
+        permissions: [PERMISSIONS.terminalAccess],
+        handler: handleGetCurrentlyRunningShells,
+        promptGenerator: 'Neuro wants to get the list of currently running shells.',
+    },
+} satisfies Record<string, ActionWithHandler>;
 
 export function registerTerminalActions() {
-    if (hasPermissions(PERMISSIONS.terminalAccess)) {
+    if (getPermissionLevel(PERMISSIONS.terminalAccess)) {
         NEURO.client?.registerActions([
-            {
-                name: 'execute_in_terminal',
-                description: 'Run a command directly in the terminal.',
-                schema: {
-                    type: 'object',
-                    properties: {
-                        command: { type: 'string' },
-                        shell: { type: 'string', enum: getAvailableShellProfileNames() },
-                    },
-                    required: ['command', 'shell'],
-                },
-            },
-            {
-                name: 'kill_terminal_process',
-                description: 'Kill a terminal process that is running.',
-                schema: {
-                    type: 'object',
-                    properties: {
-                        shell: { type: 'string' },
-                    },
-                    required: ['shell'],
-                },
-            },
-            {
-                name: 'get_currently_running_shells',
-                description: 'Get the list of terminal processes that are spawned.',
-                schema: {},
-            },
+            terminalAccessHandlers.execute_in_terminal,
+            terminalAccessHandlers.kill_terminal_process,
+            terminalAccessHandlers.get_currently_running_shells,
         ]);
     }
 }
@@ -161,22 +169,11 @@ function getOrCreateTerminal(shellType: string, terminalName: string): TerminalS
 * Checks permissions, executes the command in the requested shell,
 * captures STDOUT and STDERR, logs the output, and sends it to nwero.
 */
-export function handleRunCommand(actionData: ActionData): ActionResult {
-    // Check terminal access permission.
-    if (!hasPermissions(PERMISSIONS.terminalAccess))
-        return actionResultNoPermission(PERMISSIONS.terminalAccess);
+export function handleRunCommand(actionData: ActionData): string | undefined {
 
-    // Validate command parameter.
+    // Get the command and shell.
     const command: string = actionData.params?.command;
-    if (!command)
-        return actionResultMissingParameter('command');
-
-    // Determine the shell type.
     const shellType: string = actionData.params?.shell;
-    if (!shellType)
-        return actionResultMissingParameter('shell');
-    else if (!getAvailableShellProfileNames().includes(shellType))
-        return actionResultEnumFailure('shell', getAvailableShellProfileNames(), shellType);
 
     // Get or create the terminal session for this shell.
     const session = getOrCreateTerminal(shellType, `Neuro: ${shellType}`);
@@ -220,7 +217,7 @@ export function handleRunCommand(actionData: ActionData): ActionResult {
         logOutput('DEBUG', `Shell: ${shellPath} ${shellArgs}`);
 
         if (!shellPath || typeof shellPath !== 'string')
-            return actionResultFailure(`Couldn't determine executable for shell profile ${shellType}`);
+            return `Couldn't determine executable for shell profile ${shellType}`;
 
         const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         session.shellProcess = spawn(shellPath, shellArgs || [], { cwd, env: process.env, stdio: ['pipe', 'pipe', 'pipe'] });
@@ -257,49 +254,38 @@ export function handleRunCommand(actionData: ActionData): ActionResult {
             shellProcess.stdin.write(command + '\n');
             logOutput('DEBUG', `Sent command: ${command}`);
         } else {
-            return actionResultFailure('Unable to write to shell process.');
+            return 'Unable to write to shell process.';
         }
     }
-
-    return actionResultAccept();
 }
 
 /**
  * Kill terminal handler.
  * Checks if the terminal registry contains the open shell and forcefully kills the shell if found.
  */
-export function handleKillTerminal(actionData: ActionData): ActionResult {
-    // Check terminal access permission.
-    if (!hasPermissions(PERMISSIONS.terminalAccess))
-        return actionResultNoPermission(PERMISSIONS.terminalAccess);
+export function handleKillTerminal(actionData: ActionData): string | undefined {
 
     // Validate shell type parameter.
     const shellType: string = actionData.params?.shell;
-    if (!shellType)
-        return actionResultMissingParameter('shell');
 
     // Check if the terminal session exists in the registry.
     const session = NEURO.terminalRegistry.get(shellType);
     if (!session)
-        return actionResultFailure(`No terminal session found for shell type "${shellType}".`);
+        return contextFailure(`No terminal session found for shell type "${shellType}".`);
 
     // Dispose of the terminal and remove it from the registry.
     session.terminal.dispose();
     NEURO.terminalRegistry.delete(shellType);
 
     // Notify Neuro and the user.
-    logOutput('INFO', `Terminal session for shell type "${shellType}" has been terminated.`);
-    return actionResultAccept(`Terminal session for shell type "${shellType}" has been terminated.`);
+    return contextFailure(`Terminal session for shell type "${shellType}" has been terminated.`);
 }
 
 /**
  * Returns a list of currently running shell types.
  * Each entry includes the shell type and its status.
  */
-export function handleGetCurrentlyRunningShells(_actionData: ActionData): ActionResult {
-    if (!hasPermissions(PERMISSIONS.terminalAccess))
-        return actionResultNoPermission(PERMISSIONS.terminalAccess);
-
+export function handleGetCurrentlyRunningShells(_actionData: ActionData): string | undefined {
     const runningShells: { shellType: string; status: string }[] = [];
 
     for (const [shellType, session] of NEURO.terminalRegistry.entries()) {
@@ -308,9 +294,9 @@ export function handleGetCurrentlyRunningShells(_actionData: ActionData): Action
     }
 
     if (runningShells.length === 0)
-        return actionResultAccept('No running shells found.');
+        return contextFailure('No running shells found.');
     else
-        return actionResultAccept(`Currently running shells: ${JSON.stringify(runningShells)}`);
+        return `Currently running shells: ${JSON.stringify(runningShells)}`;
 }
 
 /**

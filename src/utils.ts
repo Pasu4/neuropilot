@@ -6,7 +6,6 @@ import globToRegExp from 'glob-to-regexp';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 
 import { NEURO } from './constants';
-import { Range } from 'vscode';
 import { CONFIG } from './config';
 
 export const REGEXP_ALWAYS = /^/;
@@ -133,10 +132,10 @@ export function getPositionContext(document: vscode.TextDocument, position: vsco
     }
 
     const startLine = Math.max(0, position.line - beforeContextLength);
-    const contextBefore = document.getText(new Range(new vscode.Position(startLine, 0), position));
+    const contextBefore = document.getText(new vscode.Range(new vscode.Position(startLine, 0), position));
     const endLine = Math.min(document.lineCount - 1, position2.line + afterContextLength);
-    const contextAfter = document.getText(new Range(position2, new vscode.Position(endLine, document.lineAt(endLine).text.length))).replace(/\r\n/g, '\n');
-    const contextBetween = document.getText(new Range(position, position2));
+    const contextAfter = document.getText(new vscode.Range(position2, new vscode.Position(endLine, document.lineAt(endLine).text.length))).replace(/\r\n/g, '\n');
+    const contextBetween = document.getText(new vscode.Range(position, position2));
 
     return {
         contextBefore: filterFileContents(contextBefore),

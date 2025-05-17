@@ -67,6 +67,8 @@ Neuro cannot open, edit, or otherwise access files or folders that start with a 
 This is mainly to prevent her from opening `.vscode/tasks.json` to essentially run arbitrary commands in the terminal.
 **Warning: If your workspace is inside such a folder, Neuro will not be able to edit *any* files!**
 
+You can customise what directories are included in the list using the `NeuroPilot > Include Pattern` and `NeuroPilot > Exclude Pattern`, and you can disable the default directory checks using `NeuroPilot > Allow Unsafe Paths`.
+
 ## Commands
 
 ### Give Cookie
@@ -85,6 +87,7 @@ Reregisters all actions according to the permissions.
 ### Disable all permissions
 
 Disable all permissions for Neuro immediately and reloads permissions. Also kills currently running tasks and any open shells.
+Any requests from Neuro when she used a Copilot-mode command is denied automatically.
 Since it's intended to be a panic button, it is recommended to bind that command to a keyboard shortcut.
 
 ### Send File As Context
@@ -92,6 +95,17 @@ Since it's intended to be a panic button, it is recommended to bind that command
 Sends the entire current file as context to Neuro, along with the file name and configured language.
 
 ## Actions
+
+### General
+
+If a permission level is set to Copilot, commands associated with that permission level first send a request to VS Code, which you can review, then allow/deny, using the NeuroPilot icon in the bottom bar.
+The icon will be highlighted if a request is pending.
+If an action requires multiple permissions, the minimum permission level is used (Autopilot > Copilot > Off).
+
+#### `cancel_request`
+
+Only registered if she is attempting to execute a Copilot-level command.
+Allows Neuro to cancel her request. If the notification was acted upon after cancelling, no response will be returned to either side.
 
 ### Tasks
 
@@ -105,6 +119,8 @@ Neuro can only run one task at a time.
 Terminates the currently running task that was started using a task action.
 
 ### File Interactions
+
+Neuro uses these actions for editing files within the current workspace. <!-- why did I put this here -->
 
 #### `get_files`
 
@@ -191,10 +207,15 @@ By default, this cannot delete anything starting with a dot, or inside a folder 
 
 ### Git interactions
 
+In addition to requiring their respective permissions, the extension will also check for a repo before registering actions other than `init_git_repo`.
+
+Because this relies on the built-in Git extension, this extension will first check for the Git extension before attempting to execute each handler.
+
 #### `init_git_repo`
 
 *Requires Permission: Git Operations.*
-Initialises a Git repository in the workspace folder and registers git commands.
+Initialises a Git repository in the workspace folder and registers other git commands.
+The local repository will be reinitialised if a git repository already exists.
 
 #### `add_file_to_git`
 
@@ -310,6 +331,8 @@ Sets a key's value in the git configuration. Neuro can only change the repositor
 
 ### Shell interactions
 
+This allows Neuro **unfettered access** via a pseudoterminal (using VS Code APIs). Essentially, this is similar to tasks, except she doesn't have a limit on what she can run.
+
 #### `execute_in_terminal`
 
 *Requires Permissions: Terminal Access.*
@@ -327,6 +350,10 @@ Kills a running shell. If a shell isn't already running, Neuro will be notified.
 Returns the list of currently running shells to Neuro.
 
 ### Linting
+
+In addition to linting problems by built-in language servers (such as the JavaScript and TypeScript Language Server), problems informed by other language servers (e.g. Python extension) will also be sent to Neuro.
+
+Access to linting problems is also limited by the list of Neuro-safe paths.
 
 #### `get_file_lint_problems`
 
@@ -349,6 +376,10 @@ Note that this only returns diagnostics of files that are loaded in the current 
 ## Further Info
 
 This extension uses the [TypeScript/JavaScript SDK](https://github.com/AriesAlex/typescript-neuro-game-sdk) by [AriesAlex](https://github.com/AriesAlex).
+
+### "Why is there a file named rce.ts in it??? Is there an intentional RCE inside this extension???" <!-- had to add this just in case -->
+
+The framework developed for forcing Neuro to request to run actions instead of just directly allowing her to do that action is called the Requested Command Execution (or Request for Command Execution) framework when it was first conceived. The short answer is no, there isn't an intentional Remote Code Execution vulnerability in this extension, but by enabling Neuro's access to Pseudoterminals, one could say she already has access to a very powerful RCE, so be careful with that one.
 
 ## Debugging
 

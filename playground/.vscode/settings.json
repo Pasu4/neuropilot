@@ -1,19 +1,19 @@
 {
     // NeuroPilot settings
-    "neuropilot.permission.editActiveDocument": true,
-    "neuropilot.permission.openFiles": true,
-    "neuropilot.permission.runTasks": true,
-    "neuropilot.permission.create": true,
-    "neuropilot.permission.delete": true,
-    "neuropilot.permission.rename": true,
-    "neuropilot.permission.gitRemotes": true,
-    "neuropilot.permission.gitTags": true,
-    "neuropilot.permission.gitOperations": true,
-    "neuropilot.permission.gitConfigs": true,
+    "neuropilot.permission.editActiveDocument": "Copilot",
+    "neuropilot.permission.openFiles": "Copilot",
+    "neuropilot.permission.runTasks": "Copilot",
+    "neuropilot.permission.create": "Copilot",
+    "neuropilot.permission.delete": "Copilot",
+    "neuropilot.permission.rename": "Copilot",
+    "neuropilot.permission.gitRemotes": "Copilot",
+    "neuropilot.permission.gitTags": "Copilot",
+    "neuropilot.permission.gitOperations": "Copilot",
+    "neuropilot.permission.gitConfigs": "Copilot",
     "neuropilot.allowUnsafePaths": false,
     "neuropilot.showTimeOnTerminalStart": true,
-    "neuropilot.permission.terminalAccess": true,
-    "neuropilot.permission.accessLintingAnalysis": true,
+    "neuropilot.permission.terminalAccess": "Copilot",
+    "neuropilot.permission.accessLintingAnalysis": "Copilot",
     "neuropilot.terminals": [
         {
             "name": "PowerShell",
@@ -36,6 +36,7 @@
         }
     ],
     "neuropilot.sendNewLintingProblemsOn": "inCurrentFile",
+    "neuropilot.requestExpiryTimeout": 10000,
     // Debug engine override for GitHub Copilot
     "github.copilot.advanced": {
         "debug.overrideEngine": "someRandomString"
