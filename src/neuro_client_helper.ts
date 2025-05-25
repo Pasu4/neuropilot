@@ -36,7 +36,7 @@ export interface ActionWithHandler extends Action {
     /** The permissions required to execute this action. */
     permissions: Permission[];
     /** The function to validate the action data *after* checking the schema. */
-    validator?: (actionData: ActionData) => ActionValidationResult;
+    validator?: ((actionData: ActionData) => ActionValidationResult)[];
     /** The function to handle the action. */
     handler: (actionData: ActionData) => string | undefined;
     /** 
