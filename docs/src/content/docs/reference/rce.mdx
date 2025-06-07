@@ -1,0 +1,10 @@
+---
+title: Requested Command Execution
+description: Info about how NeuroPilot handles execution of actions.
+---
+
+When handling actions from Neuro, the action is first passed through a "central" handler function. This forms the basis of the Requested Command Execution system.
+
+## Schema validation
+
+As Neuro can send JSON not conforming to schema, it is required to check the JSON to ensure the schema has been followed. The 'jsonschema' library is used here due to the ability to just send in a schema file and Neuro's packet, and get back a result.

@@ -6,6 +6,7 @@
 	"version": "2.0.1",
 	"publisher": "Pasu4",
 	"repository": "https://github.com/Pasu4/neuropilot",
+	"homepage": "https://pasu4.github.io/neuropilot",
 	"license": "MIT",
 	"engines": {
 		"vscode": "^1.95.0"
@@ -135,6 +136,16 @@
 			{
 				"command": "neuropilot.switchNeuroAPIUser",
 				"title": "Switch Neuro API user name",
+				"category": "NeuroPilot"
+			},
+			{
+				"command": "neuropilot.showDocsHomepage",
+				"title": "Open the docs site",
+				"category": "NeuroPilot"
+			},
+			{
+				"command": "neuropilot.openSpecificDocsPage",
+				"title": "Open a specific page in the docs",
 				"category": "NeuroPilot"
 			}
 		],

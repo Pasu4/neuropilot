@@ -1,0 +1,23 @@
+{
+  "name": "neuropilot-docs",
+  "type": "module",
+  "private": "true",
+  "version": "latest",
+  "homepage": "https://pasu4.github.io/neuropilot",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.34.3",
+    "astro": "^5.9.0",
+    "sharp": "^0.32.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.8.3"
+  }
+}

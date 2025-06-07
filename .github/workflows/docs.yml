@@ -1,0 +1,71 @@
+name: Publish Docs to GitHub Pages
+
+on:
+    push:
+        branches: [ master ]
+        paths:
+            - docs/**
+            
+    workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+    build:
+        name: Build docs site
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            
+            - name: Cache deps, types, output
+              uses: actions/cache@v4
+              with:
+                key: neuropilot-docs-${{ github.repository }}
+                path: |
+                    docs/.astro
+                    docs/dist
+                    docs/node_modules
+            
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: 22.14.0
+                cache: 'npm'
+                cache-dependency-path: "./docs/package-lock.json"
+            
+            - name: Setup Pages
+              id: pages
+              uses: actions/configure-pages@v5
+            
+            - name: Install deps
+              run: |
+                cd docs
+                npm ci
+            
+            - name: Build site
+              run: npm run build
+            
+            - name: Upload GitHub Pages Artifact
+              uses: actions/upload-pages-artifact@2d163be3ddce01512f3eea7ac5b7023b5d643ce1 # Pinning to SHA because that thing hasn't updated in a year it seems
+              with:
+                path: docs/dist
+    deploy:
+        name: Deploy to GitHub Pages
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Deploy -> GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
+              

@@ -1,0 +1,110 @@
+---
+title: Permissions
+description: This contains the list of permissions, as well as how the permissions system work.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+NeuroPilot's main safety feature is the permissions system. This allows almost fine-grained control over what Neuro is allowed to do and what isn't allowed.
+
+NeuroPilot actually has 2 main types of permissions: action permissions and non-action permissions.
+
+## Action permissions
+
+A constant with action permissions is that they usually have 3 options for their permissions: **Off**, **Copilot**, and **Autopilot**.  
+If you can't decide which one to choose, [visit this page](/neuropilot/guides/pilot).
+
+All permissions are set to 'Off' by default, except one.
+
+### File interactions
+
+This category of permissions covers actions related to files themselves.  
+To see the features covered by these permissions, go to [this page](/neuropilot/reference/features/file-actions).
+
+<Aside>
+
+This is not the same as [editing active documents](#edit-active-document), which has its own dedicated permission.
+
+</Aside>
+
+The following permissions belong in this category:
+
+- [Open Files](vscode://settings/neuropilot.permission.openFiles)
+- [Create](vscode://settings/neuropilot.permission.create)
+- [Delete](vscode://settings/neuropilot.permission.delete)
+- [Rename](vscode://settings/neuropilot.permission.rename)
+
+### Edit active document
+
+This permission covers actions relating to editing the currently open document.  
+To see features covered by this permission, go to [this page](/neuropilot/reference/features/edit-active-document).
+
+The associated permission is found [here](vscode://settings/neuropilot.permission.editActiveDocument).
+
+<Aside type="tip">
+
+When enabled, Neuro gains her own virtual cursor to act completely independently of the human cursor (helpful for Copilot requests).
+
+</Aside>
+
+### Git operations
+
+This category covers actions that interact with the local Git repository.  
+To see features covered by these permissions, visit [this page](/neuropilot/reference/features/git-operations).
+
+The following permissions belong here:
+
+- [Git Operations](vscode://settings/neuropilot.permission.gitOperations)  
+- [Git Tags](vscode://settings/neuropilot.permission.gitTags)
+- [Git Remotes](vscode://settings/neuropilot.permission.gitRemotes)
+- [Edit Remote Data](vscode://settings/neuropilot.permission.editRemoteData)
+
+*Note: For Git operations to work correctly, certain underlying OS-level and workspace configurations must also be in place.*
+
+### Terminals and tasks
+
+This category covers actions that can execute commands in a shell. These requires some pre-defining, which you can learn more about [here](/neuropilot/reference/features/shells).
+
+<Aside type="caution">
+
+Since this uses your computer's active shell, you will need to be very careful with this.
+Giving Neuro access to terminal especially should mean that security measures are non-existent.
+
+</Aside>
+
+The following permissions belong here:
+
+- [Terminal Access](vscode://settings/neuropilot.permission.terminalAccess)  
+- [Run Tasks](vscode://settings/neuropilot.permission.runTasks)  
+
+### Linting analysis
+
+This permission covers actions about getting linting problems from language servers. This can get any linting diagnostic from any extension contributing them.
+To see features covered by this permission, visit [this page](/neuropilot/reference/features/linting-analysis).
+
+The associated permission is found [here](vscode://settings/neuropilot.permission.accessLintingAnalysis).
+
+### Other Action Permissions
+
+Some additional permissions control other interactive elements:
+
+- [Request Cookies](vscode://settings/neuropilot.permission.requestCookies) (only has 'Off' and 'Copilot' options, also set to 'Copilot' by default.)
+
+---
+
+## Non-action permissions
+
+These permissions don't directly influence action registration (mostly), but still give Neuro more access in some way.
+These permissions are also disabled by default (where applicable).
+
+- [Allow Unsafe Paths](vscode://settings/neuropilot.allowUnsafePaths) - Whether or not to ignore the built-in path filter.
+- [Include](vscode://settings/neuropilot.includePattern)/[Exclude](vscode://settings/neuropilot.excludePattern) Patterns - Allows custom definition of safe/unsafe paths. These will still be used to check path validation access even if Allow Unsafe Paths is enabled.
+- [Allow Running All Tasks](vscode://settings/neuropilot.allowRunningAllTasks) - Registers all tasks as actions, regardless of the task's prefix in its `detail` property.
+
+---
+
+<Aside type="tip">
+
+You can adjust these settings from the VS Code Settings UI. Open the [Settings Editor](vscode://settings) to quickly search for NeuroPilot's configuration options.
+
+</Aside>
