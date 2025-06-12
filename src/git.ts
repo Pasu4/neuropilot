@@ -41,6 +41,51 @@ function neuroSafeGitValidator(actionData: ActionData): ActionValidationResult {
     return actionValidationAccept();
 }
 
+function gitDiffValidator(actionData: ActionData): ActionValidationResult {
+    const diffType: string = actionData.params?.diffType ?? 'diffWithHEAD';
+    switch (diffType) {
+        case 'diffWithHEAD':
+            if (actionData.params?.ref1 || actionData.params?.ref2) {
+                return actionValidationAccept('Neither "ref1" nor "ref2" is needed.');
+            }
+            return actionValidationAccept();
+        case 'diffWith':
+            if (actionData.params?.ref1 && actionData.params?.ref2) {
+                return actionValidationAccept('Only "ref1" is needed for the "diffWith" diff type.');
+            } else if (!actionData.params?.ref1) {
+                return actionValidationFailure('"ref1" is required for the diff type of "diffWith"', true);
+            } else {
+                return actionValidationAccept();
+            }
+        case 'diffIndexWithHEAD':
+            if (actionData.params?.ref1 || actionData.params?.ref2) {
+                return actionValidationAccept('Neither "ref1" nor "ref2" is needed.');
+            }
+            return actionValidationAccept();
+        case 'diffIndexWith':
+            if (actionData.params?.ref1 && actionData.params?.ref2) {
+                return actionValidationAccept('Only "ref1" is needed for the "diffIndexWith" diff type.');
+            } else if (!actionData.params?.ref1) {
+                return actionValidationFailure('"ref1" is required for the diff type of "diffIndexWith"', true);
+            } else {
+                return actionValidationAccept();
+            }
+        case 'diffBetween':
+            if (!actionData.params?.ref1 || !actionData.params?.ref2) {
+                return actionValidationFailure('"ref1" AND "ref2" is required for the diff type of "diffWith"', true);
+            } else {
+                return actionValidationAccept();
+            }
+        case 'fullDiff':
+            if (actionData.params?.ref1 || actionData.params?.ref2) {
+                return actionValidationAccept('Neither "ref1" nor "ref2" is needed.');
+            }
+            return actionValidationAccept();
+        default:
+            return actionValidationFailure('Unknown diff type.');
+    }
+}
+
 export const gitActions = {
     init_git_repo: {
         name: 'init_git_repo',
@@ -195,8 +240,8 @@ export const gitActions = {
         },
         permissions: [PERMISSIONS.gitOperations],
         handler: handleDiffFiles,
-        promptGenerator: (actionData: ActionData) => `obtain ${actionData.params?.filePath ? `${actionData.params.filePath}'s` : 'a'} Git diff${actionData.params?.ref1 && actionData.params?.ref2 ? ` between ${actionData.params.ref1} and ${actionData.params.ref2}` : actionData.params?.ref1 ? ` at ref ${actionData.params.ref1}` : ''}${actionData.params?.diffType ? ` (of type "${actionData.params.diffType}")` : ''}.`,
-        validator: [gitValidator, neuroSafeGitValidator],
+        promptGenerator: (actionData: ActionData) => `obtain ${actionData.params?.filePath ? `"${actionData.params.filePath}"'s` : 'a'} Git diff${actionData.params?.ref1 && actionData.params?.ref2 ? ` between ${actionData.params.ref1} and ${actionData.params.ref2}` : actionData.params?.ref1 ? ` at ref ${actionData.params.ref1}` : ''}${actionData.params?.diffType ? ` (of type "${actionData.params.diffType}")` : ''}.`,
+        validator: [gitValidator, neuroSafeGitValidator, gitDiffValidator],
     },
     git_log: {
         name: 'git_log',
