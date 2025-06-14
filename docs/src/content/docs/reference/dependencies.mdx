@@ -1,0 +1,59 @@
+---
+title: Extension dependencies
+description: To power some of its functionality, NeuroPilot requires some extensions to be loaded to function. This is called a dependency.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Multiple features require another extension to work, so this page lists them so that you are sure you have the necessary extensions to function.
+
+## Direct dependencies
+
+### Visual Studio Code
+
+Don't think this one needs to be explained, but there is one thing: While no guarantees it will work, you can try using a VS Code fork if you want (such as Cursor or VSCodium).
+
+### Copilot Chat
+
+ID: `github.copilot-chat`
+
+*Required: false*
+
+Copilot Chat allows the user to chat with Neuro on the sidebar panel.
+It also powers inline completions, allowing Neuro to "complete the code".
+
+<Aside>
+
+You do not require a Copilot Chat subscription to use the chat panel.
+
+</Aside>
+
+### Git
+
+ID: `vscode.git`
+
+*Required: true*
+
+*Built-in extension*
+
+The built-in Git extension powers Neuro's ability to interact with the git repository.
+
+<Aside type="tip">
+
+Despite also having Git in its name, the built-in Git Base extension is not needed to run NeuroPilot.
+
+</Aside>
+
+## Indirect dependencies
+
+### Language servers
+
+*Powers: Linting Analysis*
+
+Language server extensions contribute to the Linting Analysis portion indirectly by contributing to VSCode's linting diagnostics feature.
+
+### Shells
+
+*Powers: Terminal*
+
+To use the terminal feature, you are required to have installed shells on your computer.

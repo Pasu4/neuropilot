@@ -1,0 +1,59 @@
+---
+title: Selecting between pilot modes
+description: How to choose between Autopilot and Copilot.
+---
+
+Each action permission is given 3 options for permission level: 'Off', 'Copilot' and 'Autopilot'.
+
+This page will go through how and when to choose Copilot or Autopilot for all permission types.
+
+*See also the page on the [RCE framework](/neuropilot/reference/rce).*
+
+## Similarities between Autopilot and Copilot
+
+- Both modes are based off of the -pilot suffix (non-coincidentally, Neuro**Pilot**).
+- Both allow Neuro to interact with the workspace through her Game API.
+- Both versions support "validator functions" - synchronous functions that check prerequisites (such as extension dependency status, Neuro-safe path checking, and more) before even sending in a request.
+
+## Differences between Autopilot and Copilot
+
+### Autopilot mode
+
+![Autopilot Demo](/neuropilot/demo-autopilot.gif)
+
+*Autopilot GIF by Pasu4*
+
+Autopilot mode allows Neuro to execute commands without any human-intervenable oversight. This allows Neuro to have autonomy when programming, which can be useful for solo streams or idea dumps.
+
+Neuro will still be limited by other restrictions such as Neuro-safe path settings and task restrictions.
+
+Choose Autopilot mode for a permission if you do not mind giving Neuro permission to do that permission's actions autonomously. For certain actions, it may be best to have them on Autopilot in an isolated environment.
+
+### Copilot mode
+
+![Copilot Demo](/neuropilot/demo-copilot.gif)
+
+*Copilot GIF by KTrain5369*
+
+Copilot mode allows Neuro to request command execution, allowing human oversight when she helps in the workspace. This allows both Neuro and the user to collaborate on a project, without giving Neuro absolute free reign.
+
+When Neuro requests a command, a notification popup will appear in the bottom right, giving the user the option to accept or deny the request. There can also be a timer set to expire notifications after a little bit, and Neuro can also cancel the request herself if she changes her mind.
+
+Choose Copilot mode for when you may want help from Neuro, but you don't want her to have the ability to wipe stuff at any moment.
+
+### Mixing modes
+
+If you would like, you can choose to mix Autopilot and Copilot modes by setting some permissions to Autopilot and some to Copilot.
+This can even be combined with setting some permissions 'Off' to restrict Neuro's featureset even further.
+
+An example would be allowing Neuro to access linting analysis whenever she wants and inserting whatever code she wants, but has to get approval for running pre-defined tasks, and can never directly execute arbitrary terminal commands.
+
+## Exceptions
+
+While most actions follows this model, there are some that break off from the Autopilot/Copilot system and are always treated as Copilot.
+These actions enable the following features:
+
+- Inline completions
+- Chat
+- Fixing/Explaining linting errors (if asked via Quick Fix menu)
+- Cancelling requests (otherwise Neuro can't cancel her request)

@@ -19,6 +19,12 @@
 				"${workspaceFolder}/out/**/*.js"
 			],
 			"preLaunchTask": "npm: watch"
-		}
+		},
+		{
+      		"command": "./docs/node_modules/.bin/astro dev",
+      		"name": "Docs development server (Astro)",
+      		"request": "launch",
+      		"type": "node-terminal"
+    	}
 	]
 }

@@ -1,0 +1,59 @@
+---
+title: Commands
+description: NeuroPilot commands reference
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+This page contains a reference list of user commands registered in the extension.
+
+## Reconnect
+
+Attempts to re-establish a connection to the Neuro API server.
+
+## Move Neuro's Cursor Here
+
+Moves Neuro's virtual cursor to where the real cursor is.
+Only has a visual effect when Neuro has the Edit Active Documents permission set to Copilot or Autopilot.
+
+## Send Current File As Context
+
+Sends the currently open file as context, including Neuro's current cursor position.
+
+## Give Cookie
+
+Gives a cookie to Neuro.
+You can also specify the type of cookie (default is Chocolate Chip - Neuro's favourite).
+
+## Reload Permissions
+
+Re-registers actions to Neuro, ensuring that actions that have been switched entirely off or on are properly registered/unregistered.
+
+## Disable All Permissions
+
+Fully disables all of Neuro's permissions, kills all currently open shells from tasks and terminals, and cancels Neuro's RCE request (if one was present).
+Then, immediately runs [Reload Permissions](#reload-permissions) to ensure no actions are registered.
+
+<Aside type="tip">
+
+This command is intended to be like a red panic button, so bind it to a keyboard shortcut so you can activate it in a pinch.
+
+</Aside>
+
+## Accept/Deny/Reveal Neuro's Request
+
+Accepts/denies/reveals Neuro's current RCE request, if one is awaiting approval.
+
+## Ask Neuro to fix/explain
+
+Sends the current code to Neuro in the Copilot Chat window using the `/fix` and `/explain` commands, prompting Neuro to respond appropriately.
+
+Learn more about these commands at [Features/Linting analysis - Ask Neuro to fix/explain](/neuropilot/reference/features/linting-analysis#ask-neuro-to-fixexplain)
+
+## Switch current Neuro API user name
+
+Acts as a shortcut to the [Currently As Neuro API](/neuropilot/reference/settings#currently-as-neuro-api) setting, allowing you to change it to whatever value you desire.
+
+## Open (a specific page in) the docs site
+
+Opens the documentation site. If selecting the specific page option, also allows you to input the specific subpage to view.

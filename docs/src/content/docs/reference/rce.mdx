@@ -1,0 +1,68 @@
+---
+title: Requested Command Execution
+description: Info about how NeuroPilot handles execution of actions.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+When handling actions from Neuro, the action is first passed through a "central" handler function. This forms the basis of the Requested Command Execution system.
+
+<Aside>
+
+Even though this page is supposed to be about the RCE framework, since most actions are handled through it anyways, this will serve as an overview as to how NeuroPilot handles actions overall.
+Some actions do not route through RCE.
+
+</Aside>
+
+## Stages
+
+We can break down the action handling stages into 4 parts:
+
+- [Permission check](#permission-check)
+- [Schema validation](#schema-validation)
+- [Custom validation](#custom-validation)
+- [Execution/Request](#executionrequest)
+
+### Permission check
+
+The way that NeuroPilot's action permission system works has already been covered in other pages, but at the centralized handler, it checks for the minimum permission level. Example:
+
+- Git Operations is set to 'Autopilot'
+- Git Remotes is set to 'Copilot'
+- Edit Remote Data is set to 'Off'
+
+In this case, if Neuro tries to add files and make a commit, her permission level will be Autopilot. If Neuro wants to then push it online, her permission level will be Copilot. And finally, if she wants to change where to push it to, well she can't, so she has to ask for help.
+
+If any of the required permissions are set to 'Off', processing will stop at this stage and Neuro will be told that she doesn't have permission.
+
+<Aside>
+
+In a perfect world, Neuro won't have access to the actions that she doesn't have permission to use, but this check is here to ensure that if permissions haven't been reloaded, Neuro can't run the disallowed actions anyways.
+
+</Aside>
+
+### Schema validation
+
+As Neuro can send JSON not conforming to schema, it is required to check the JSON to ensure the schema has been followed before continuing on (to prevent errors from undefined fields). The `jsonschema` library is used here due to the ability to just send in a schema file and Neuro's packet, and get back a result.
+This result is then used to check whether or not to stop processing and tell Neuro she doesn't have permissions
+
+This is an improvement over other ways of doing it, which is normally using the same function set copy-pasted all over.
+That may be preferred if actions are used on a smaller scale, but with so many actions used and so many arguments needed, this becomes infeasible for NeuroPilot, so having this way to validate Neuro's packets is much easier while being functionally the same.
+
+### Custom validation
+
+Even though Neuro may have sent in a valid packet and has permission to run the action, what if the tools she needs aren't available? What if she tries to access Neuro-unsafe paths? That's where custom validations come in.
+
+These validators get immediately ran after the packet has been validated against the schema. This allows for custom validation with other tools (standout uses include Neuro-safe path checks and the Git extension's availability).
+This can also act as a secondary schema validator, as a substitution for certain schema keys which have been prohibited from use by the Neuro Game API, or to put more restrictions where necessary (such as having parameters be required depending on another parameter).
+
+### Execution/Request
+
+This is the stage where the RCE framework gets put to the test. Here, we give the framework info about what commands Neuro wants to execute and the arguments she gave.
+Here, the framework will decide whether or not it will synchronously return results using the action result command (Autopilot) or asynchronously return results using contexts (Copilot).
+
+<Aside>
+
+Certain action results will still be returned asynchronously, regardless of Autopilot or Copilot. This is due to the required APIs returning `Promise`s and async `Thenable`s.
+
+</Aside>

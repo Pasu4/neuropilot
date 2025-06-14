@@ -35,6 +35,39 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('neuropilot.fixWithNeuro', fixWithNeuro);
     vscode.commands.registerCommand('neuropilot.explainWithNeuro', explainWithNeuro);
     vscode.commands.registerCommand('neuropilot.switchNeuroAPIUser', switchCurrentNeuroAPIUser);
+    vscode.commands.registerCommand('neuropilot.showDocsHomepage', () => {
+        const panel = vscode.window.createWebviewPanel(
+            'docsWebView',
+            'NeuroPilot Docs (WebView)',
+            vscode.ViewColumn.One,
+            { enableScripts: true },
+        );
+        // Pass the homepage subpage ("/") to openDocsPage
+        panel.webview.html = openDocsPage('/');
+    });
+
+    vscode.commands.registerCommand('neuropilot.openSpecificDocsPage', async (args?: { subpage?: string }) => {
+        let subpage: string | undefined;
+        if (args && typeof args.subpage === 'string') {
+            subpage = args.subpage;
+        } else {
+            subpage = await vscode.window.showInputBox({
+                prompt: 'Enter the docs subpath (e.g., /guide, /api, etc.)',
+                placeHolder: '/',
+            });
+        }
+        if (!subpage) {
+            vscode.window.showErrorMessage('No subpage specified.');
+            return;
+        }
+        const panel = vscode.window.createWebviewPanel(
+            'docsWebView',
+            'NeuroPilot Docs (WebView)',
+            vscode.ViewColumn.One,
+            { enableScripts: true },
+        );
+        panel.webview.html = openDocsPage(subpage);
+    });
 
     // Update the CodeActionProvider to pass the document and diagnostics.
     vscode.languages.registerCodeActionsProvider(
@@ -221,4 +254,38 @@ function switchCurrentNeuroAPIUser() {
         quickPick.hide();
     });
     quickPick.show();
+}
+
+function openDocsPage(subpage = '/'): string {
+    let constructedDocsPage: string = CONFIG.docsURL;
+    if (subpage.startsWith('/')) {
+        constructedDocsPage += subpage;
+    } else {
+        constructedDocsPage += '/' + subpage;
+    }
+
+    const htmlpage =
+    '<!DOCTYPE html>' +
+    '<html lang="en">' +
+    '<head>' +
+    '   <meta charset="UTF-8">' +
+    `   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; frame-src ${CONFIG.docsURL}; script-src 'none'; style-src 'unsafe-inline';">` + // Content Security Policy for safety reasons
+    '   <meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+    '   <title>NeuroPilot Docs WebView</title>' +
+    '   <style>' +
+    '       html, body, iframe {' +
+    '           width: 100%;' +
+    '           height: 100%;' +
+    '           margin: 0;' +
+    '           padding: 0;' +
+    '           border: none;' +
+    '       }' +
+    '   </style>' +
+    '</head>' +
+    '<body>' +
+    `   <iframe src="${constructedDocsPage}" frameborder="0"></iframe>` +
+    '</body>' +
+    '</html>';
+
+    return htmlpage;
 }

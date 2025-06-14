@@ -1,6 +1,6 @@
 # NeuroPilot
 
-![Demo GIF](demo-autopilot.gif)
+![Autopilot demo GIF](docs/public/demo-autopilot.gif)
 
 **Disclaimer: For simplicity, all mentions of Neuro also apply to Evil unless otherwise stated.**
 
@@ -50,6 +50,8 @@ This is a safety measure so she doesn't have access to all tasks.
 
 ### Copilot Mode
 
+![Copilot demo GIF](docs/public/demo-copilot.gif)
+
 Copilot mode aims to let Neuro code alongside the user, by letting her suggest code (like GitHub Copilot) and request to execute actions, which the user can allow or deny.
 
 Instead of executing actions directly like in Autopilot Mode, a notification popup will appear asking you to confirm the action first.
@@ -88,10 +90,11 @@ For example, you can configure it so Neuro can edit files by herself, but has to
 
 ### Continuous Context Updates
 
-![Example of lint update](tony-lint.png)
+![Example of lint update](docs/public/tony-lint.png)
 
 Neuro will be updated on certain events not directly triggered by the user that happen in the workspace.
 She will be notified when:
+
 - a file is saved (only if [Auto Save](vscode://settings/files.autoSave) is not set to `afterDelay`)
 - the Auto Save setting is modified
 - lint problems occur (controlled by the setting [Send New Linting Problems On](vscode://settings/neuropilot.sendNewLintProblemsOn))
@@ -519,8 +522,8 @@ The short answer is no, there isn't an intentional Remote Code Execution vulnera
 - Clone the repository
 - Run `npm install` in terminal to install dependencies
 - Run the `Run Extension` target in the Debug View. This will:
-    - Start a task `npm: watch` to compile the code
-    - Run the extension in a new VS Code window
+  - Start a task `npm: watch` to compile the code
+  - Run the extension in a new VS Code window
 
 ## Contributing
 
