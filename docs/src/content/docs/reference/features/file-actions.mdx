@@ -1,0 +1,28 @@
+---
+title: File actions
+description: Features relating to file properties.
+---
+
+import NeuroFiles from '../../../../assets/neuro-files.svg'
+import CenterIcon from '../../../../components/CenterIcon.astro'
+
+<CenterIcon Icon={NeuroFiles} credits="File actions icon by KTrain5369" />
+
+## Get/open workspace files
+
+Neuro can get or open files within the workspace. This will either get the list of Neuro-safe files in the workspace, or open files as specified (assuming the path is Neuro-safe).
+If a file is already opened, its tab will be focused.
+
+When opening a file, Neuro will be sent the current file as well as her cursor position.
+
+## Create/Delete/Rename files and folders
+
+Neuro can choose to create, delete or rename files and folders within the workspace.
+To toggle between deleting a file or folder, Neuro must set the `recursive` parameter to `true`.
+
+This will check for Neuro-unsafe paths before performing said actions.
+In the case of renaming, the Neuro-safe path check will happen on both the old and new path.
+
+## Editing files
+
+See [Edit Active Document's feature list](/neuropilot/reference/features/edit-active-document).

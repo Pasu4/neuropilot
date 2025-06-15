@@ -1,0 +1,34 @@
+---
+title: Linting analysis
+description: Features relating to linting diagnostics from language server extensions.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+import NeuroPilotLint from '../../../../assets/neuropilot-lint.svg'
+import CenterIcon from '../../../../components/CenterIcon.astro'
+
+<CenterIcon Icon={NeuroPilotLint} credits="NeuroPilot lint logo by KTrain5369" />
+
+## Passive linting contexts
+
+If the [Send New Linting Problems On](/neuropilot/reference/settings#send-new-linting-problems-on) setting is set to a value other than 'Off', Neuro will be informed if a file has gotten new linting problems accordingly.
+
+This setting respects the Neuro-safe path checks.
+
+## Get File/Folder/Workspace Lint Problems
+
+This allows Neuro to get linting problems in any Neuro-safe file/folder or workspace.
+This will also include linting analysis contributed by other Language Server extensions (such as the Python/Pylance or C/C++ extensions).
+
+## Ask Neuro to fix/explain
+
+This will send the surrounding context of the relevant file, alongside the lint problem and a pre-determined prompt, to Neuro. prompting her to fix or explain the issue.
+
+<Aside>
+
+Due to the normal inline chat feature being contributed by the Copilot extension and being hardcoded to use `@workspace`, NeuroPilot works around this by sending the prompt in chat.
+
+This therefore means that it will rely on the chat system with action forces and the like.
+Find out more at [Features/Copilot features - Copilot Chat](/neuropilot/reference/features/copilot-features#copilot-chat).
+
+</Aside>

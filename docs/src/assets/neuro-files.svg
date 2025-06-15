@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   fill="#000000"
+   width="33.867001"
+   height="33.867001"
+   viewBox="0 0 1.35468 1.35468"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <title
+     id="title1">file</title>
+  <path
+     d="m 0.29739809,1.1211112 q 0,0.026345 0.0182392,0.044579 0.0182353,0.018238 0.0455912,0.018238 h 0.63323496 q 0.025329,0 0.044579,-0.018239 0.019251,-0.018239 0.018239,-0.044579 V 0.42404586 L 0.80398629,0.17075177 H 0.3612284 q -0.0263402,0 -0.0455907,0.0192506 -0.0192506,0.0192506 -0.0182392,0.044579 z m 0.12664728,-0.06383 V 0.29739898 H 0.74116931 V 0.4878761 h 0.18946427 v 0.5694051 z"
+     id="path1"
+     style="fill:#d200df;fill-opacity:1;stroke:none;stroke-width:0.0316617;stroke-opacity:1" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>file</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="g7040"
+     transform="matrix(0.01220328,0,0,0.01220328,-0.78372596,-1.4662889)">
+    <path
+       style="fill:none;fill-opacity:1;stroke:#bb00df;stroke-width:3.60798;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.15807,175.60045 h 5.18879"
+       id="path7028" />
+    <path
+       style="display:inline;fill:none;fill-opacity:0;stroke:#bb00df;stroke-width:3.175;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 134.25017,166.93341 c 0,0 -1.1816,-1.70236 -3.95274,-1.75466 -3.27441,-0.0618 -4.88593,2.51297 -7.72963,5.48112 -3.57225,-2.74674 -4.21331,-3.90714 -7.36938,-3.91114 -3.67463,-0.004 -5.14047,3.33362 -5.15237,5.23405 -0.0124,1.98316 0.75549,4.37141 2.52369,5.73531 3.64052,2.80809 7.28104,5.61619 10.92156,8.42429 l 2.632,-2.2626"
+       id="path7030" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#bb00df;stroke-width:2.64583;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 121.53361,176.98317 h 13.24397"
+       id="path7034" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#bb00df;stroke-width:2.64583;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 127.55938,170.65987 h 7.2182"
+       id="path7036" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#bb00df;stroke-width:2.64583;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 130.06542,183.11057 h 4.71216"
+       id="path7038" />
+  </g>
+</svg>

@@ -1,0 +1,78 @@
+---
+title: Safety features
+description: Safety is probably the top concern for this extension. This page details the security measures present in the extension.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+As it is most likely dangerous if Neuro was given free reign, NeuroPilot has built-in safety features enabled by default. This page will go over them, what they do, and the consequences of disabling them.
+
+<Aside type="tip">
+
+This page basically reiterates information already put into other pages for the sake of unifying safety features into one page.
+
+</Aside>
+
+<Aside type="danger">
+
+Enabling direct terminal access will **__disable all safety features__** inherently.
+This is mostly due to being able to modify `.vscode/settings.json` and being able to execute whatever CLI commands she wants.
+
+It is always better to pre-define tasks for Neuro to run than giving her terminal access.
+
+</Aside>
+
+## Incompleteness
+
+An unintentional safety feature within NeuroPilot lies within its incompleteness: at the moment, it does not fully recreate Visual Studio Code 1:1.
+Until that is achieved, the incompleteness factor will prevent Neuro from performing complete takeover.
+
+## File access restrictions (Neuro-safe path checks)
+
+NeuroPilot has a set of checks (dubbed Neuro-safe path checks), which checks if a path specified in inputs is considered "Neuro-safe".
+
+By default, the following paths are considered Neuro-unsafe paths (they will be checked against for path-related actions and if present, NeuroPilot will refuse to execute the action):
+
+- Files and folders starting with a `.` (such as `.vscode/**` or `.env`)
+- Environmental variables
+- Parent directories
+- Home directory (`~`)
+- The workspace folder itself
+
+You can add additional Neuro-unsafe paths using the [Include Patterns setting](/neuropilot/reference/settings#include-exclude-patterns).
+
+You can also disable the default Neuro-unsafe path checks using the [Allow Unsafe Paths setting](/neuropilot/reference/settings#allow-unsafe-paths).
+If you do so, Neuro will be able to access potentially unsafe file paths, such as `.env` (which is where you'd store your secrets, such as API keys) and `.vscode/settings.json` (which could allow her to edit NeuroPilot's settings, potentially giving herself Autopilot-level permissions and disabling safeguards).
+
+## Opt-in task action registration
+
+NeuroPilot only registers tasks whose detail description start with `[Neuro]` (case-insensitive).
+Each action will have the Neuro tag substringed from their detail description before registration (and trailing whitespaces stripped).
+
+You can see an example in the `playground` directory of the NeuroPilot repo.
+
+You can allow Neuro to use ALL defined tasks by enabling the [Allow Running All Tasks setting](/neuropilot/reference/permissions#non-action-permissions).
+This will allow Neuro to run any tasks defined in `.vscode/tasks.json`. Tasks that have been marked with the Neuro tag will still be substringed to anonymise what is normally registered anyways.
+The impact of enabling this setting vastly depends on the tasks defined in there.
+
+## Explicit shell definition
+
+More info: [Settings/Terminals](/neuropilot/reference/settings#terminals)
+
+In order to run shells, they must be explicitly defined in `.vscode/settings.json` with their name, path and args to be passed in (if any).
+
+You can find out how to define them by reading the link above. You cannot disable this safety feature.
+
+## Permissions
+
+The action permissions system is the biggest safety feature within NeuroPilot. This defines how Neuro can use certain actions - either allowing her to do it herself, require approval, or prevent her from doing it.
+This system is tightly integrated into NeuroPilot, and disabling it can mean two things:
+
+- Setting action permissions to Autopilot: Neuro will be able to execute that permission whenever she wants without needing approval. You may want to look at the [permissions reference](/neuropilot/reference/permissions) to see what each permission group can do.
+- Disabling all permissions by setting them to 'Off': Neuro will no longer be able to run any actions unsupervised. You can still ask her questions via Copilot Chat without any problems.
+
+You can learn about the way NeuroPilot handles action permissions on the [RCE page](/neuropilot/reference/rce).
+
+You cannot disable the RCE framework itself as that would effectively mean every Autopilot-able permission will no longer function.
+However, what can be construed as effectively disabling it is setting every permission to Autopilot mode.
+This will allow Neuro to do any and all actions whenever she wants without pre-execution human oversight.

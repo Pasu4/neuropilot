@@ -1,0 +1,26 @@
+---
+title: NeuroPilot Setup
+description: Step-by-step setup guide for NeuroPilot.
+---
+
+import HeartBNW from '../../../assets/heart-bnw.svg'
+import HeartPink from '../../../../public/heart-pink.svg'
+import { Icon } from '@astrojs/starlight/components'
+
+<HeartBNW class="neuropilot-icon inline-icon" /> <HeartPink class="inline-icon" />
+
+*Main heart icon by Pasu4*
+
+To get started on NeuroPilot, [install it from the Visual Studio Marketplace <Icon name="vscode" class="inline-icon" />](https://marketplace.visualstudio.com/items?itemName=Pasu4.neuropilot) .
+
+Upon installation (and subsequently activation), NeuroPilot will try to seek out the Neuro Game API server. For this reason, you may receive a VS Code about success/failure to connect to the Neuro API.
+
+If you don't have the Neuro API on the default host + port, you can change it in [`NeuroPilot > Websocket Url`](/neuropilot/reference/settings#websocket-url) and attempt to reconnect using the [`NeuroPilot: Reconnect`](/neuropilot/reference/commands#reconnect) command.
+You can also use the reconnect command if you didn't get the API ready in time.
+
+By default, NeuroPilot will register its game as `Visual Studio Code`, the initial context will be set to `You are using an extension in Visual Studio Code that allows you to code together with Vedal.`, and the only command registered will be [`request_cookie`](/neuropilot/reference/permissions#requestCookies).
+The [game name](/neuropilot/reference/settings#game-name) and [initial context](/neuropilot/reference/settings#initial-context) can also be changed in their respective settings.
+
+Once you've verified that a connection is established, you'll want to configure Neuro's [display name](/neuropilot/reference/settings#currentlyAsNeuroAPI) (if necessary) and [permissions](/neuropilot/reference/permissions). These change the display name of Neuro around the UI and give her the ability to autonomously perform actions, respectively.
+
+Remember to [reload permissions](/neuropilot/reference/commands#reload-permissions) if you fully disable/enable action permissions, and [reload tasks](/neuropilot/reference/commands#reload-tasks) if you change the Neuro-allowed task list.

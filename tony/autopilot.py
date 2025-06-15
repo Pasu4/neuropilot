@@ -1,7 +1,6 @@
 import json
 from neuro_api_tony.api import NeuroAPI, ActionResultCommand
 import asyncio
-import textwrap
 
 async def wait_for_startup(api: NeuroAPI):
     while not api.current_game:
@@ -72,7 +71,7 @@ async def main():
     await wait_for_action_result(api)
     await asyncio.sleep(5)
 
-    api.send_action("id_9", "request_cookie", json.dumps({"flavor": "chocolate chip"}))
+    api.send_action("id_9", "request_cookie", json.dumps({"flavor": "Chocolate Chip"}))
     await wait_for_action_result(api)
     await asyncio.sleep(2)
     

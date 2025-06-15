@@ -1,0 +1,56 @@
+.center-icon {
+  width: 300px;
+  height: auto;
+  display: block;
+  margin: 20 auto;
+}
+
+html[data-theme="light"] .neuropilot-icon {
+  stroke: black; /* Light mode: icons are black */
+}
+
+html[data-theme="dark"] .neuropilot-icon {
+  stroke: white; /* Dark mode: icons are white */
+}
+
+.inline-icon {
+  display: inline;
+}
+
+html[data-theme="light"] .twinpilot #twinpilot-ahoge {
+  /* animation: test 1s infinite alternate; */
+  scale: -1 1;
+  transition: 0.5s;
+}
+
+html[data-theme="dark"] .twinpilot #twinpilot-ahoge {
+  scale: 1 1;
+  transition: 0.5s;
+}
+
+html[data-theme="light"] .twinpilot #twinpilot-angry {
+  transform: translate(0, -2px);
+  transition: 0.5s;
+}
+
+html[data-theme="dark"] .twinpilot #twinpilot-angry {
+  transform: translate(0, 0);
+  transition: 0.5s;
+}
+
+html[data-theme="light"] .twinpilot #twinpilot-heartbreak {
+  stroke-dasharray: 1000 1000;
+  stroke-dashoffset: 1000;
+  transition: 0.5s;
+}
+
+html[data-theme="dark"] .twinpilot #twinpilot-heartbreak {
+  stroke-dasharray: 1000 1000;
+  stroke-dashoffset: 993;
+  transition: 0.5s;
+}
+
+.icon-credit-text {
+    font-style: italic;
+    text-align: center;
+}

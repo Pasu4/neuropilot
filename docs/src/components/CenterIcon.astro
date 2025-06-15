@@ -1,0 +1,16 @@
+---
+import type { JSX } from "astro/jsx-runtime";
+
+interface CenterIconProps {
+    Icon: JSX.Element;
+    className?: string;
+    credits: string;
+}
+
+const { Icon, className, credits }: CenterIconProps = Astro.props as CenterIconProps;
+---
+
+<div>
+    <Icon style="width:300px; height:auto; display:block; margin:20px auto;" class={className ? className : ""} />
+    <p class="icon-credit-text">{credits}</p>
+</div>

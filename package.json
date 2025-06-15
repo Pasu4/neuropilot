@@ -6,6 +6,7 @@
 	"version": "2.0.1",
 	"publisher": "Pasu4",
 	"repository": "https://github.com/Pasu4/neuropilot",
+	"homepage": "https://pasu4.github.io/neuropilot",
 	"license": "MIT",
 	"engines": {
 		"vscode": "^1.95.0"
@@ -136,6 +137,16 @@
 				"command": "neuropilot.switchNeuroAPIUser",
 				"title": "Switch Neuro API user name",
 				"category": "NeuroPilot"
+			},
+			{
+				"command": "neuropilot.showDocsHomepage",
+				"title": "Open the docs site",
+				"category": "NeuroPilot"
+			},
+			{
+				"command": "neuropilot.openSpecificDocsPage",
+				"title": "Open a specific page in the docs",
+				"category": "NeuroPilot"
 			}
 		],
 		"configuration": [
@@ -151,6 +162,12 @@
 						"type": "string",
 						"default": "Visual Studio Code",
 						"description": "The name to use for this \"game\""
+					},
+					"neuropilot.initialContext": {
+						"type": "string",
+						"default": "You are using an extension in Visual Studio Code that allows you to code together with Vedal.",
+						"description": "The initial context to sent to Neuro-sama (or whatever is connected to NeuroPilot)",
+						"editPresentation": "multilineText"
 					},
 					"neuropilot.currentlyAsNeuroAPI": {
 						"type": "string",
@@ -172,6 +189,11 @@
 							"The human operator (Pasu4)",
 							"Literally in your computer walls (Govorunb)"
 						]
+					},
+					"neuropilot.docsURL": {
+						"type": "string",
+						"default": "https://pasu4.github.io/neuropilot",
+						"markdownDescription": "If you're using a mirror of the docs site, put its URL here.\n\nYou will most likely not need to change this, unless you are modifying the docs themselves."
 					},
 					"neuropilot.beforeContext": {
 						"type": "integer",
@@ -202,12 +224,6 @@
 							"Only request completions when the user explicitly invokes the completion provider",
 							"Automatically request completions when the user stops typing"
 						]
-					},
-					"neuropilot.initialContext": {
-						"type": "string",
-						"default": "You are using an extension in Visual Studio Code that allows you to code together with Vedal.",
-						"description": "The initial context to sent to Neuro-sama (or whatever is connected to NeuroPilot)",
-						"editPresentation": "multilineText"
 					},
 					"neuropilot.timeout": {
 						"type": "integer",

@@ -1,0 +1,141 @@
+---
+title: Git operations
+description: Features relating to Git.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+import NeuroGit from '../../../../assets/neuro-git.svg'
+import CenterIcon from '../../../../components/CenterIcon.astro'
+
+Git operations has the most amount of actions, so in this page they will be (sort of) sectioned according to their permission.
+
+Each permission here also requires the Git Operations permission to be enabled no matter what.
+
+As this relies on the built-in git extension (and for most, an initialized repo), NeuroPilot will first check if the Git extension is loaded, before registering git actions.
+Then, NeuroPilot will check if there already is an initialized repo in the workspace.
+
+<CenterIcon Icon={NeuroGit} credits="NeuroGit icon by KTrain5369, based on the Git logo" />
+
+## Vanilla (no additional permissions)
+
+These actions require no other permission to be enabled than the Git Operations permission.
+
+### Initialize Git Repository
+
+Neuro can initialize a local git repository. This will then cause git actions to be registered.
+If there is already a git repository, it will reinitialize the repo.
+
+<Aside type="tip">
+
+This is the only action that doesn't require a repo to be present. All other git actions requires a repo to be present.
+
+</Aside>
+
+### Add/Remove files from git
+
+Neuro can add/remove files from the staging index in git. This works just like their respective git commands.
+
+### Make a git commit
+
+Neuro can make a commit herself using the info currently being used by git.
+
+To differentiate between her commits and human commits, the prefix `Neuro commit: <commit title>` will be used.
+
+<Aside type="tip">
+
+The prefix changes partially depending on the [Currently As Neuro API setting](/neuropilot/reference/settings#currently-as-neuro-api).
+It changes the attribution in the prefix.
+
+Example: The Currently As Neuro API setting is set to Evil.
+The prefix will instead be `Evil commit: <commit title>`.
+
+</Aside>
+
+### Git status
+
+Sends the current status of the git repository to Neuro, fully formatted using Markdown.
+
+### Merge git branches
+
+This allows Neuro to merge git branches together.
+This follows the same as merging on the command line, selecting another branch to merge to the current branch.
+
+### Add/Remove/Switch branches
+
+This allows Neuro to add, remove or switch between branches.
+
+### Abort git merges
+
+This is only registered if a merge failed to happen cleanly.
+Neuro can use this to abort merging if she can't resolve merge conflicts.
+
+### Diff files
+
+This gets the diff between two states of a file and sends it to Neuro.
+This will be sent raw as Neuro will probably understand a diff easier.
+
+This has a complex schema that can't be checked via the normal schema validation and can't be specified via the normal schema specs + the Neuro-specific restrictions.
+For this reason, Neuro is more likely to send in an "incorrect" packet using this action.
+
+### Get commit log
+
+This gets the commit log for the branch, formats it to be readable, then sent to Neuro.
+Neuro can also specify a limit on how many logs she gets, starting from the most recent and going backwards.
+
+### Get blame attribution
+
+This gets the line-by-line blame attributions for a file and sends it to Neuro.
+
+## Git tags
+
+Neuro can use these actions to manage tags on the repo.
+These require the Git Tags permission to be enabled.
+
+### Tag HEAD
+
+This tags the current HEAD commit of the branch.
+Neuro can choose to name the tag.
+
+### Delete tag
+
+This deletes a tag from the repository.
+
+## Git remotes
+
+These actions allow Neuro to interact with the remote repository connected to the current repository.
+These actions require the Git Remotes permission to be enabled.
+
+### Fetch git commits
+
+This fetches commits from the remote repository for Neuro.
+This will then allow her to pull commits.
+
+### Pull git commits
+
+Attempts to fast-forward or merge changes from the remote repository.
+
+### Push git commits
+
+Publishes any unpublished commits online.
+This will abort if any issue occurs, even if it's just as simple as requiring a pull before pushing.
+
+### Add/remove/rename git remotes
+
+This allows Neuro to add, remove or rename a git remote.
+Renaming simply renames the name set by your local repository, NOT the link to the remote repository.
+
+In addition to Git Remotes, a specialized permission named Edit Remote Data also needs to be enabled for these actions.
+
+## Get/set git config
+
+Allows Neuro to get/set a config key in the git configuration.
+If getting the git config, Neuro can omit the field for her desired key, which will send her the entire local git config.
+
+This action requires the Git Config permission to be enabled.
+
+<Aside>
+
+Neuro can only directly change the local git configuration, never the global configuration.
+This obviously does not apply if you have enabled direct terminal access.
+
+</Aside>

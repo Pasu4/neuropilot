@@ -1,0 +1,29 @@
+{
+  "name": "neuropilot-docs",
+  "type": "module",
+  "private": true,
+  "version": "ext-v2.0.2",
+  "readme": "README.md",
+  "repository": "https://github.com/Pasu4/neuropilot/tree/master/docs",
+  "homepage": "https://pasu4.github.io/neuropilot",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "compile": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "~0.34.3",
+    "astro": "~5.9.0",
+    "sharp": "~0.32.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "~0.9.4",
+    "eslint": "~9.28.0",
+    "eslint-plugin-astro": "~1.3.1",
+    "typescript": "~5.8.3"
+  }
+}

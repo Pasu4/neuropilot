@@ -16,3 +16,8 @@ src/
 # Tony
 .venv
 tony/
+
+# Docs
+docs/**
+!docs/public/*.gif
+!docs/public/*.png

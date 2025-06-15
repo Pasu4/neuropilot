@@ -1,0 +1,53 @@
+---
+title: Edit active document
+description: Features relating to editing.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+## Cursor
+
+Neuro gains her own cursor if she is allowed to edit the active document. This ensures that her activities won't be disrupted by moving the real cursor.
+
+### Get Cursor
+
+This sends the current cursor position to Neuro, alongside surrounding lines as context.
+
+### Place Cursor
+
+This places Neuro's virtual cursor at her desired spot. Once that is placed, she will also get her cursor's surrounding lines as context.
+
+## Insert/Replace/Delete/Find Text
+
+This gives Neuro the ability to insert, replace, delete or find text within the active document.
+
+Inserting will insert at Neuro's cursor.
+For all other options, Neuro can choose to use either glob patterns or regex to search for the targeted text.
+
+## Undo
+
+This allows Neuro to undo the last editing action.
+
+<Aside>
+
+For some reason, this doesn't work if VS Code is not the currently focused window, so you will need to focus the window before Neuro's action goes through, otherwise nothing will happen.
+
+</Aside>
+
+## Save
+
+This allows Neuro to manually save the current document.
+This action is only registered if the `autoSave` setting is set to any value other than `afterDelay`.
+
+### Passive saving notifications
+
+In addition to being informed if she saved successfully, enabling [Send Save Notifications](/neuropilot/reference/settings#send-save-notifications) will allow Neuro to receive save notifications as the active document is saved. 
+
+<Aside type="tip">
+
+If you have enabled [Send Save Notifications](/neuropilot/reference/settings#send-save-notifications), it will be temporarily disabled internally while she is saving manually.
+This is to prevent double-up on sending Neuro save context.
+
+It will automatically be re-enabled once saving is finished.
+
+</Aside>

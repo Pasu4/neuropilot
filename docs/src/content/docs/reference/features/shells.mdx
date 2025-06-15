@@ -1,0 +1,61 @@
+---
+title: Terminals & tasks
+description: Features relating to shell-related activity (tasks & terminals)
+---
+
+import { Aside } from '@astrojs/starlight/components'
+import Console from '../../../../assets/console.svg'
+import CenterIcon from '../../../../components/CenterIcon.astro'
+
+<CenterIcon Icon={Console} credits="Terminal icon by Pasu4" class="neuropilot-icon" />
+
+## Tasks
+
+Tasks that Neuro can run are registered as individual actions.
+The task properties make up its action in the following structure:
+
+```ts
+{
+    name: task.id,
+    description: task.description ?? task.id,
+    schema: undefined
+}
+```
+
+Changing Neuro-safe tasks in any way requires a [task reload](/neuropilot/reference/commands#reload-tasks).
+The `[Neuro]` tag will be substring'ed out before forming the task description.
+
+Neuro can only run one task at a time. Attempting to run another will return an error.
+
+### Terminate Task
+
+Terminates the currently running task.
+This will also free up the task slot as soon as it has been terminated.
+
+## Terminals
+
+In order to run terminals, you need to define terminals in your `.vscode/settings.json`.
+For info about the setting, see [its entry in the settings page](/neuropilot/reference/settings#terminals).
+
+### Execute In Terminal
+
+Spawns the requested shell with the preset arguments, and executes the provided command.
+This can also be used to input into terminal prompts (e.g. inputting your name when the program asks to).
+
+To prevent overwhelming Neuro, the stdout and stderrs are sent at a [configurable delay](/neuropilot/references/settings#terminal-context-delay) to wait for all output before sending it to Neuro.
+
+Terminals spawned by Neuro are prefixed with `Neuro:` and have the icon at the top of this page.
+
+<Aside type="tip">
+
+If a terminal gives more output *after* Neuro executes her command, Neuro will be informed of such output.
+
+</Aside>
+
+### Kill Terminal Process
+
+This will kill the shell that Neuro has selected, unless it is already killed.
+
+### Get Current Shells
+
+This will get the list of currently running shells and return it to Neuro.

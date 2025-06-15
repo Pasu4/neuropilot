@@ -1,0 +1,212 @@
+---
+title: Settings list
+description: NeuroPilot's settings list
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+The following are **non-permission-related** settings in NeuroPilot.
+
+To find the list of permission-related settings, visit [this page](/neuropilot/reference/permissions).
+
+## WebSocket URL
+
+**Default: `ws://localhost:8000`**
+
+The address NeuroPilot will try to connect to for the Neuro Game API.
+You'll need to try to [reconnect](/neuropilot/reference/commands) after changing this.
+
+## Game Name
+
+**Default: `Visual Studio Code`**
+
+The game name that will be sent to Neuro in every packet (in the `game` parameter).
+You'll need to try to [reconnect](/neuropilot/reference/commands) after changing this.
+
+<Aside>
+
+You really shouldn't change this unless you're working with a VS Code fork, since according to the Neuro Game API spec, 'the game name should match the display name'.
+Since NeuroPilot extends VS Code, the display name of the "game" is "Visual Studio Code".
+
+</Aside>
+
+## Initial Context
+
+**Default: `You are currently using an extension that allows you to code together with Vedal.`**
+
+Sets the context that is sent to Neuro upon connection.
+You'll need to try to [reconnect](/neuropilot/reference/commands) after changing this.
+
+## Currently As Neuro API
+
+**Default: `Neuro`**
+
+**Options: `['Neuro', 'Evil', 'Randy', 'Jippity', 'Tony', 'Gary']`**
+
+Changes the display name in certain areas such as (but not just) RCE requests and menu items.
+If you wish, you can set a custom name by overriding the current option in `.vscode/settings.json`.
+You will need to ignore the lint warn if you do that though.
+
+<Aside>
+
+This is mostly a cosmetic change, with one exception: To chat to Neuro/Evil/connected Neuro API server, you need to prefix your message with `@neuro`/`@evil`/`@neuroapi` respectively.
+If you type the wrong name's @, the prompt will be sent to GitHub Copilot, even if the @ still highlighted in the chatbox.
+
+</Aside>
+
+## Docs URL
+
+**Default: `https://pasu4.github.io/neuropilot` (this site)**
+
+The base URL of the docs site.
+
+<Aside type="caution">
+
+You should not need to change this, unless you are contributing to the docs.
+Changing this setting to an untrusted website could potentially be dangerous.
+
+</Aside>
+
+## Before/After Context
+
+**Default: `10`/`10`**
+
+The amount of lines before/after the **real** cursor to send to Neuro with inline completions, or the **virtual** cursor if Neuro is editing a file.
+
+## Max Completions
+
+**Default: 3**
+
+The maximum amount of completions to request from Neuro every trigger.
+
+## Completion Trigger
+
+**Default: `invokeOnly`**
+
+**Options: `["off", "invokeOnly", "automatic"]`**
+
+The condition to request inline completions from Neuro.
+
+<Aside type="caution">
+
+Setting this to `automatic` will most likely overwhelm Neuro!
+This is due to NeuroPilot performing many action registers, action forces, action unregisters, and contexts.
+
+`automatic` completion triggers will trigger automatically when you stop typing.
+
+</Aside>
+
+## Timeout
+
+**Default: `10000`**
+
+The time (in milliseconds) to wait for chats and completions, before considering them cancelled.
+
+## Include/Exclude Patterns
+
+**Default: `**/*`/`**/node_modules/**\n**/venv/**`**
+
+Glob patterns that define what Neuro is/isn't allowed to open.
+Separate each item with a newline character ('\n').
+
+<Aside>
+
+Files and folders starting with a dot will still be ignored regardless of Include Patterns.
+
+</Aside>
+
+## Terminals
+
+**Default: See object array below.**
+
+```json
+[
+    {
+        "name": "PowerShell",
+        "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "args": []
+    },
+    {
+        "name": "Command Prompt",
+        "path": "C:\\Windows\\System32\\cmd.exe",
+        "args": [
+            "/K"
+        ]
+    },
+    {
+        "name": "Git Bash",
+        "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "args": [
+            "-i"
+        ]
+    }
+]
+```
+
+*See also: [Features/Shells - Terminals](/neuropilot/reference/features/shells#terminals)*
+
+An array of objects that specify the shell's name, path to the shell, and args (if any) to pass in when starting them up.
+
+## Show Time On Terminal Start
+
+**Default: `false`**
+
+**Options: `true`, `false`**
+
+Displays the current time (according to system clock) when starting a new terminal session.
+
+## Terminal Context Delay
+
+**Default: `400`**
+
+The time to wait (in ms) before sending terminal outputs to Neuro.
+
+## Send New Linting Problems On
+
+**Default: `off`**
+
+**Options: `['off', 'inCurrentFile', 'inWorkspace']`**
+
+*See also: [Features/Linting analysis - Automatic context updates](/neuropilot/reference/features/linting-analysis#automatic-context-updates)
+
+Defines when Neuro gets automatic context updates. This will send context independent of the [`Access Linting Analysis`](/neuropilot/reference/permissions#linting-analysis) permission.
+
+## Send Save Notifications
+
+**Default: `true`**
+
+**Options: `true`, `false`**
+
+If enabled, Neuro gets notified if a file is saved.
+This setting does nothing if the `Files > Auto Save` setting is set to `Off`, and does not affect whether or not Neuro gets notified if she saved manually.
+
+## Request Expiry Timeout
+
+**Default: `0`**
+
+Gives how long to wait (in ms) before timing out Neuro's requests.
+
+## Hide Copilot Requests
+
+**Default: `false`**
+
+**Options: `true`, `false`**
+
+If ticked, Neuro's Copilot requests will go into a "system tray" icon at the bottom bar of VS Code.
+Click the icon to reveal Neuro's request.
+
+<Aside>
+
+The timer starts from when Neuro sends the request, **not** when you click on the icon.
+This means that you may timeout the notification while it's still sitting in the icon.
+
+</Aside>
+
+## Cursor Follows Neuro
+
+**Default: `false`**
+
+**Options: `true`, `false`**
+
+Whether or not Neuro moving her cursor will move the real cursor at the same time.
+Can be useful for Neuro solo coding.

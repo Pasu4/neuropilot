@@ -447,7 +447,6 @@ export function handleSave(_actionData: ActionData): string | undefined {
 export function fileSaveListener(e: vscode.TextDocument) {
     /**
      * In order from left to right, this function immediately returns if:
-     * - Files > Auto Save is set to off
      * - NeuroPilot > Send Save Notifications is set to false
      * - the file that was saved isn't Neuro safe
      * - Neuro manually saved the file.
