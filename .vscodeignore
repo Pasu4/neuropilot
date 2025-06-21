@@ -4,6 +4,7 @@ playground/**
 eslint.config.mjs
 tsconfig.json
 src/
+node_modules/
 *.vsix
 
 # Krita

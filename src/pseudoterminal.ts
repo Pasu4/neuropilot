@@ -1,9 +1,31 @@
+/** 
+ * This file's exports are not designed/intended to be used in the WebWorker build of the extension
+ * This means that the web version of the extension will not have this file here (such as [VS Code for the Web](https://vscode.dev) and its [GitHub version](https://github.dev))
+ * Feel free to use Node.js APIs here - they won't be a problem.
+ */
+
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { NEURO } from './constants';
-import { TerminalSession, logOutput, delayAsync, getFence } from './utils';
+import { logOutput, delayAsync, getFence } from './utils';
 import { ActionData, actionValidationAccept, actionValidationFailure, ActionValidationResult, ActionWithHandler, contextFailure, stripToActions } from './neuro_client_helper';
 import { CONFIG, PERMISSIONS, getPermissionLevel } from './config';
+import { ChildProcessWithoutNullStreams } from 'child_process';
+
+/*
+ * Extended interface for terminal sessions.
+ * We now explicitly store the event emitter along with the pseudoterminal.
+ */
+export interface TerminalSession {
+    terminal: vscode.Terminal;
+    pty: vscode.Pseudoterminal;
+    emitter: vscode.EventEmitter<string>;
+    outputStdout?: string;
+    outputStderr?: string;
+    processStarted: boolean;
+    shellProcess?: ChildProcessWithoutNullStreams;
+    shellType: string;
+}
 
 function checkLiveTerminals(actionData: ActionData): ActionValidationResult {
     const shellType: string = actionData.params.shell;

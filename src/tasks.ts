@@ -1,3 +1,9 @@
+/** 
+ * This file's exports are not designed/intended to be used in the WebWorker build of the extension
+ * This means that the web version of the extension will not have this file here (such as [VS Code for the Web](https://vscode.dev) and its [GitHub version](https://github.dev))
+ * Feel free to use Node.js APIs here - they won't be a problem.
+ */
+
 import * as vscode from 'vscode';
 
 import { NEURO } from './constants';

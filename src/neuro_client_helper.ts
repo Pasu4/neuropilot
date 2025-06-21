@@ -167,6 +167,7 @@ export function actionResultIncorrectType(parameterName: string, expectedType: s
  * Create an action result that tells Neuro that she doesn't have the required permission.
  * @param permission The permission Neuro doesn't have.
  * @returns A successful action result with a message pointing out the missing permission.
+ * @deprecated Handled by the permissions checker component of RCE.
  */
 export function actionValidationNoPermission(permission: Permission): ActionValidationResult {
     logOutput('WARNING', `Action failed: Neuro attempted to ${permission.infinitive}, but permission is disabled.`);

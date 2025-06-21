@@ -1,19 +1,15 @@
 import * as vscode from 'vscode';
 
-import { EXTENSIONS, NEURO } from './constants';
-import { logOutput, createClient, onClientConnected, isPathNeuroSafe, setVirtualCursor } from './utils';
-import { completionsProvider, registerCompletionResultHandler } from './completions';
-import { giveCookie, registerRequestCookieAction, registerRequestCookieHandler, sendCurrentFile } from './context';
-import { registerChatParticipant, registerChatResponseHandler } from './chat';
-import { registerUnsupervisedActions, registerUnsupervisedHandlers } from './unsupervised';
-import { reloadTasks, taskEndedHandler } from './tasks';
-import { emergencyTerminalShutdown, saveContextForTerminal } from './pseudoterminal';
-import { CONFIG } from './config';
-import { explainWithNeuro, fixWithNeuro, NeuroCodeActionsProvider, sendDiagnosticsDiff } from './lint_problems';
-import { editorChangeHandler, fileSaveListener, moveNeuroCursorHere, toggleSaveAction, workspaceEditHandler } from './editing';
-import { emergencyDenyRequests, acceptRceRequest, denyRceRequest, revealRceNotification } from './rce';
-import { GitExtension } from './types/git';
-import { getGitExtension } from './git';
+import { NEURO } from '../constants';
+import { logOutput, createClient, onClientConnected, isPathNeuroSafe, setVirtualCursor } from '../utils';
+import { completionsProvider, registerCompletionResultHandler } from '../completions';
+import { giveCookie, registerRequestCookieAction, registerRequestCookieHandler, sendCurrentFile } from '../context';
+import { registerChatParticipant, registerChatResponseHandler } from '../chat';
+import { registerUnsupervisedWebActions, registerUnsupervisedHandlers } from './unsupervised';
+import { CONFIG } from '../config';
+import { explainWithNeuro, fixWithNeuro, NeuroCodeActionsProvider, sendDiagnosticsDiff } from '../lint_problems';
+import { editorChangeHandler, fileSaveListener, moveNeuroCursorHere, toggleSaveAction, workspaceEditHandler } from '../editing';
+import { emergencyDenyRequests, acceptRceRequest, denyRceRequest, revealRceNotification } from '../rce';
 
 export function activate(context: vscode.ExtensionContext) {
     NEURO.url = CONFIG.websocketUrl;
@@ -37,40 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('neuropilot.fixWithNeuro', fixWithNeuro);
     vscode.commands.registerCommand('neuropilot.explainWithNeuro', explainWithNeuro);
     vscode.commands.registerCommand('neuropilot.switchNeuroAPIUser', switchCurrentNeuroAPIUser);
-    vscode.commands.registerCommand('neuropilot.refreshExtensionDependencyState', obtainExtensionState);
-    vscode.commands.registerCommand('neuropilot.showDocsHomepage', () => {
-        const panel = vscode.window.createWebviewPanel(
-            'docsWebView',
-            'NeuroPilot Docs (WebView)',
-            vscode.ViewColumn.One,
-            { enableScripts: true },
-        );
-        // Pass the homepage subpage ("/") to openDocsPage
-        panel.webview.html = openDocsPage('/');
-    });
-
-    vscode.commands.registerCommand('neuropilot.openSpecificDocsPage', async (args?: { subpage?: string }) => {
-        let subpage: string | undefined;
-        if (args && typeof args.subpage === 'string') {
-            subpage = args.subpage;
-        } else {
-            subpage = await vscode.window.showInputBox({
-                prompt: 'Enter the docs subpath (e.g., /guide, /api, etc.)',
-                placeHolder: '/',
-            });
-        }
-        if (!subpage) {
-            vscode.window.showErrorMessage('No subpage specified.');
-            return;
-        }
-        const panel = vscode.window.createWebviewPanel(
-            'docsWebView',
-            'NeuroPilot Docs (WebView)',
-            vscode.ViewColumn.One,
-            { enableScripts: true },
-        );
-        panel.webview.html = openDocsPage(subpage);
-    });
 
     // Update the CodeActionProvider to pass the document and diagnostics.
     vscode.languages.registerCodeActionsProvider(
@@ -80,25 +42,17 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     registerChatParticipant(context);
-    saveContextForTerminal(context);
 
     onClientConnected(registerPreActionHandler);
     onClientConnected(registerCompletionResultHandler);
     onClientConnected(registerChatResponseHandler);
     onClientConnected(registerRequestCookieAction);
     onClientConnected(registerRequestCookieHandler);
-    onClientConnected(reloadTasks);
-    onClientConnected(registerUnsupervisedActions);
+    onClientConnected(registerUnsupervisedWebActions);
     onClientConnected(registerUnsupervisedHandlers);
     onClientConnected(registerPostActionHandler);
 
-    obtainExtensionState();
-    vscode.extensions.onDidChange(obtainExtensionState);
-
     vscode.languages.onDidChangeDiagnostics(sendDiagnosticsDiff);
-
-    vscode.tasks.onDidEndTask(taskEndedHandler);
-
     vscode.workspace.onDidSaveTextDocument(fileSaveListener);
 
     vscode.workspace.onDidChangeConfiguration(event => {
@@ -127,14 +81,14 @@ export function activate(context: vscode.ExtensionContext) {
     NEURO.statusBarItem.color = new vscode.ThemeColor('statusBarItem.foreground');
     NEURO.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.background');
 
-    // sync the status bar item visibility with the setting
+    // Sync the status bar item visibility with the setting
     if (CONFIG.hideCopilotRequests)
         NEURO.statusBarItem.show();
 
     // Set virtual cursor position for new files
     vscode.window.onDidChangeActiveTextEditor(editorChangeHandler);
 
-    // Create cursor decoration type
+    // Create cursor decoration type using web-friendly APIs
     NEURO.cursorDecorationType = vscode.window.createTextEditorDecorationType(getDecorationRenderOptions(context));
 
     vscode.workspace.onDidChangeTextDocument(workspaceEditHandler);
@@ -168,9 +122,8 @@ function reconnect() {
 }
 
 function reloadPermissions() {
-    reloadTasks();
     registerRequestCookieAction();
-    registerUnsupervisedActions();
+    registerUnsupervisedWebActions();
 }
 
 function registerPreActionHandler() {
@@ -182,7 +135,6 @@ function registerPreActionHandler() {
 function registerPostActionHandler() {
     NEURO.client?.onAction((actionData) => {
         if (NEURO.actionHandled) return;
-
         NEURO.client?.sendActionResult(actionData.id, true, 'Unknown action');
     });
 }
@@ -209,7 +161,6 @@ function disableAllPermissions() {
             exe.terminate();
             NEURO.currentTaskExecution = null;
         }
-        emergencyTerminalShutdown();
         emergencyDenyRequests();
         // Send context and reload
         reloadPermissions();
@@ -225,7 +176,8 @@ function getDecorationRenderOptions(context: vscode.ExtensionContext) {
         borderRadius: '1px',
         overviewRulerColor: 'rgba(255, 85, 229, 0.5)',
         overviewRulerLane: vscode.OverviewRulerLane.Right,
-        gutterIconPath: context.asAbsolutePath('assets/heart.png'),
+        // Use extensionUri to get a web-friendly URI for the icon
+        gutterIconPath: vscode.Uri.joinPath(context.extensionUri, 'icon.png'),
         gutterIconSize: 'contain',
         rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
         before: {
@@ -260,61 +212,4 @@ function switchCurrentNeuroAPIUser() {
         quickPick.hide();
     });
     quickPick.show();
-}
-
-function openDocsPage(subpage = '/'): string {
-    let constructedDocsPage: string = CONFIG.docsURL;
-    if (subpage.startsWith('/')) {
-        constructedDocsPage += subpage;
-    } else {
-        constructedDocsPage += '/' + subpage;
-    }
-
-    const htmlpage =
-    '<!DOCTYPE html>' +
-    '<html lang="en">' +
-    '<head>' +
-    '   <meta charset="UTF-8">' +
-    `   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; frame-src ${CONFIG.docsURL}; script-src 'none'; style-src 'unsafe-inline';">` + // Content Security Policy for safety reasons
-    '   <meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-    '   <title>NeuroPilot Docs WebView</title>' +
-    '   <style>' +
-    '       html, body, iframe {' +
-    '           width: 100%;' +
-    '           height: 100%;' +
-    '           margin: 0;' +
-    '           padding: 0;' +
-    '           border: none;' +
-    '       }' +
-    '   </style>' +
-    '</head>' +
-    '<body>' +
-    `   <iframe src="${constructedDocsPage}" frameborder="0"></iframe>` +
-    '</body>' +
-    '</html>';
-
-    return htmlpage;
-}
-
-function obtainExtensionState(): void {
-    /** Copilot Chat */
-    const copilotChat = vscode.extensions.getExtension('github.copilot-chat')?.isActive;
-    if (copilotChat === true) {
-        EXTENSIONS.copilotChat = true;
-    } else {
-        EXTENSIONS.copilotChat = false;
-    }
-
-    /** Git */
-    const git = vscode.extensions.getExtension<GitExtension>('vscode.git');
-    if (git?.isActive !== undefined) {
-        if (git.isActive === true) {
-            EXTENSIONS.git = git.exports;
-        } else {
-            EXTENSIONS.git = null;
-        }
-    } else {
-        EXTENSIONS.git = null;
-    }
-    getGitExtension();
 }

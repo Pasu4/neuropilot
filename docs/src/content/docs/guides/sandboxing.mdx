@@ -7,10 +7,10 @@ import { Aside } from '@astrojs/starlight/components'
 
 <Aside>
 
-This page is minimalistic because we expect that users want to be able to run this extension in a sandboxed environment, but we didn't initially take this into account.
+This page is minimalistic because we expect that users want to be able to run this extension in a sandboxed environment, but we didn't initially take this into account (somewhat).
 
 We plan on expanding options to allow local Neuro API server compatibility with remote sandboxed environments, without requiring it to be exposed to the internet.
-You can track its progress on [issue #32 on the NeuroPilot repository](https://github.com/Pasu4/neuropilot/issue/32).
+You can track its progress on [issue #32 on the NeuroPilot repository](https://github.com/Pasu4/neuropilot/issues/32).
 
 </Aside>
 
@@ -57,3 +57,15 @@ If you're comfortable with not having internet access in the VM, you can stay in
 9. Add your IP address and host that you spawned your Neuro API server on, in the scheme of `ws://(host):(port)`.
 
 10. Now, [attempt to reconnect](/neuropilot/reference/commands#reconnect). This should now connect to your Neuro API server as expected.
+
+## Web environment
+
+As of v2.2.0, NeuroPilot now has a separate Web build. It acts partially the same as the desktop mode, but loses access to certain features that cannot be ran in the Web environment.
+
+This includes:
+
+- Terminals & tasks
+- Git access
+- Copilot Chat window & inline completions (dependency extension can't be ran in the web environment)
+
+To use the web version, go to [vscode.dev](https://vscode.dev) (or any web build of VS Code, such as `github.dev`), and install NeuroPilot.

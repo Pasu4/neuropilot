@@ -9,5 +9,5 @@
 		"strict": true,
 		"rootDir": "src"
 	},
-	"exclude": ["node_modules", ".vscode-test", "playground", "docs"]
+	"exclude": ["node_modules", ".vscode-test", "playground", "src/web", "docs", "project-files"]
 }
