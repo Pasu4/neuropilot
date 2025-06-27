@@ -21,3 +21,6 @@ tony/
 docs/**
 !docs/public/*.gif
 !docs/public/*.png
+
+# Coverage
+/coverage

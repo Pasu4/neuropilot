@@ -1,0 +1,17 @@
+{
+    // NeuroPilot settings
+    "neuropilot.permission.editActiveDocument": "Autopilot",
+    "neuropilot.permission.openFiles": "Autopilot",
+    "neuropilot.permission.runTasks": "Autopilot",
+    "neuropilot.permission.create": "Autopilot",
+    "neuropilot.permission.delete": "Autopilot",
+    "neuropilot.permission.rename": "Autopilot",
+    "neuropilot.permission.gitRemotes": "Autopilot",
+    "neuropilot.permission.gitTags": "Autopilot",
+    "neuropilot.permission.gitOperations": "Autopilot",
+    "neuropilot.permission.gitConfigs": "Autopilot",
+    "neuropilot.allowUnsafePaths": false,
+    "neuropilot.showTimeOnTerminalStart": true,
+    "neuropilot.permission.terminalAccess": "Autopilot",
+    "neuropilot.permission.accessLintingAnalysis": "Autopilot",
+}
