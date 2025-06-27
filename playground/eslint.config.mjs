@@ -5,7 +5,7 @@ import globals from 'globals';
 
 export default tseslint.config(
     {
-        files: ['**/*.{js,mjs,cjs,ts}'],
+        files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
         ignores: [
             'out',
             'playground/**',

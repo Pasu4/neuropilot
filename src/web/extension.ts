@@ -1,19 +1,17 @@
 import * as vscode from 'vscode';
 
-import { EXTENSIONS, NEURO } from './constants';
-import { logOutput, createClient, onClientConnected, isPathNeuroSafe, setVirtualCursor } from './utils';
-import { completionsProvider, registerCompletionResultHandler } from './completions';
-import { giveCookie, registerRequestCookieAction, registerRequestCookieHandler, sendCurrentFile } from './context';
-import { registerChatParticipant, registerChatResponseHandler } from './chat';
+import { NEURO, EXTENSIONS } from '../constants';
+import type { GitExtension } from '../types/git.d';
+import { getGitExtension } from '../git';
+import { logOutput, createClient, onClientConnected, isPathNeuroSafe, setVirtualCursor } from '../utils';
+import { completionsProvider, registerCompletionResultHandler } from '../completions';
+import { giveCookie, registerRequestCookieAction, registerRequestCookieHandler, sendCurrentFile } from '../context';
+import { registerChatParticipant, registerChatResponseHandler } from '../chat';
 import { registerUnsupervisedActions, registerUnsupervisedHandlers } from './unsupervised';
-import { reloadTasks, taskEndedHandler } from './tasks';
-import { emergencyTerminalShutdown, saveContextForTerminal } from './pseudoterminal';
-import { CONFIG } from './config';
-import { explainWithNeuro, fixWithNeuro, NeuroCodeActionsProvider, sendDiagnosticsDiff } from './lint_problems';
-import { editorChangeHandler, fileSaveListener, moveNeuroCursorHere, toggleSaveAction, workspaceEditHandler } from './editing';
-import { emergencyDenyRequests, acceptRceRequest, denyRceRequest, revealRceNotification } from './rce';
-import { GitExtension } from './types/git';
-import { getGitExtension } from './git';
+import { CONFIG } from '../config';
+import { explainWithNeuro, fixWithNeuro, NeuroCodeActionsProvider, sendDiagnosticsDiff } from '../lint_problems';
+import { editorChangeHandler, fileSaveListener, moveNeuroCursorHere, toggleSaveAction, workspaceEditHandler } from '../editing';
+import { emergencyDenyRequests, acceptRceRequest, denyRceRequest, revealRceNotification } from '../rce';
 
 const docsOptions: Record<string, string> = {
     'NeuroPilot': CONFIG.docsURL,
@@ -133,14 +131,12 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     registerChatParticipant(context);
-    saveContextForTerminal(context);
 
     onClientConnected(registerPreActionHandler);
     onClientConnected(registerCompletionResultHandler);
     onClientConnected(registerChatResponseHandler);
     onClientConnected(registerRequestCookieAction);
     onClientConnected(registerRequestCookieHandler);
-    onClientConnected(reloadTasks);
     onClientConnected(registerUnsupervisedActions);
     onClientConnected(registerUnsupervisedHandlers);
     onClientConnected(registerPostActionHandler);
@@ -149,19 +145,12 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.extensions.onDidChange(obtainExtensionState);
 
     vscode.languages.onDidChangeDiagnostics(sendDiagnosticsDiff);
-
-    vscode.tasks.onDidEndTask(taskEndedHandler);
-
     vscode.workspace.onDidSaveTextDocument(fileSaveListener);
 
     vscode.workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration('files.autoSave')) {
             NEURO.client?.sendContext('The Auto-Save setting has been modified.');
             toggleSaveAction();
-        }
-        if (event.affectsConfiguration('neuropilot.docsURL')) {
-            logOutput('INFO', 'NeuroPilot Docs URL changed.');
-            registerDocsLink('NeuroPilot', CONFIG.docsURL);
         }
     });
 
@@ -171,6 +160,10 @@ export function activate(context: vscode.ExtensionContext) {
         if (event.affectsConfiguration('neuropilot.currentlyAsNeuroAPI')) {
             NEURO.currentController = CONFIG.currentlyAsNeuroAPI;
             logOutput('DEBUG', `Changed current controller name to ${NEURO.currentController}.`);
+        }
+        if (event.affectsConfiguration('neuropilot.docsURL')) {
+            logOutput('INFO', 'NeuroPilot Docs URL changed.');
+            registerDocsLink('NeuroPilot', CONFIG.docsURL);
         }
     });
 
@@ -184,14 +177,14 @@ export function activate(context: vscode.ExtensionContext) {
     NEURO.statusBarItem.color = new vscode.ThemeColor('statusBarItem.foreground');
     NEURO.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.background');
 
-    // sync the status bar item visibility with the setting
+    // Sync the status bar item visibility with the setting
     if (CONFIG.hideCopilotRequests)
         NEURO.statusBarItem.show();
 
     // Set virtual cursor position for new files
     vscode.window.onDidChangeActiveTextEditor(editorChangeHandler);
 
-    // Create cursor decoration type
+    // Create cursor decoration type using web-friendly APIs
     NEURO.cursorDecorationType = vscode.window.createTextEditorDecorationType(getDecorationRenderOptions(context));
 
     vscode.workspace.onDidChangeTextDocument(workspaceEditHandler);
@@ -230,7 +223,6 @@ function reconnect() {
 }
 
 function reloadPermissions() {
-    reloadTasks();
     registerRequestCookieAction();
     registerUnsupervisedActions();
 }
@@ -244,7 +236,6 @@ function registerPreActionHandler() {
 function registerPostActionHandler() {
     NEURO.client?.onAction((actionData) => {
         if (NEURO.actionHandled) return;
-
         NEURO.client?.sendActionResult(actionData.id, true, 'Unknown action');
     });
 }
@@ -271,7 +262,6 @@ function disableAllPermissions() {
             exe.terminate();
             NEURO.currentTaskExecution = null;
         }
-        emergencyTerminalShutdown();
         emergencyDenyRequests();
         // Send context and reload
         reloadPermissions();
@@ -287,7 +277,8 @@ function getDecorationRenderOptions(context: vscode.ExtensionContext) {
         borderRadius: '1px',
         overviewRulerColor: 'rgba(255, 85, 229, 0.5)',
         overviewRulerLane: vscode.OverviewRulerLane.Right,
-        gutterIconPath: context.asAbsolutePath('assets/heart.png'),
+        // Use extensionUri to get a web-friendly URI for the icon
+        gutterIconPath: vscode.Uri.joinPath(context.extensionUri, 'icon.png'),
         gutterIconSize: 'contain',
         rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
         before: {

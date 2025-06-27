@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import { NEURO } from './constants';
 import { escapeRegExp, getFence, getPositionContext, getVirtualCursor, isPathNeuroSafe, logOutput, NeuroPositionContext, setVirtualCursor, substituteMatch } from './utils';
-import { ActionData, actionValidationAccept, actionValidationFailure, ActionValidationResult, ActionWithHandler, contextFailure, stripToActions } from './neuro_client_helper';
+import { ActionData, actionValidationAccept, actionValidationFailure, ActionValidationResult, RCEAction, contextFailure, stripToActions } from './neuro_client_helper';
 import { PERMISSIONS, getPermissionLevel, CONFIG } from './config';
 
 const CONTEXT_NO_ACCESS = 'You do not have permission to access this file.';
@@ -12,9 +12,9 @@ const MATCH_OPTIONS: string[] = ['firstInFile', 'lastInFile', 'firstAfterCursor'
 
 function checkCurrentFile(_actionData: ActionData): ActionValidationResult {
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return actionValidationFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return actionValidationFailure(CONTEXT_NO_ACCESS);
 
     return actionValidationAccept();
@@ -132,7 +132,7 @@ export const editingActions = {
         validator: [checkCurrentFile],
         promptGenerator: 'save.',
     },
-} satisfies Record<string, ActionWithHandler>;
+} satisfies Record<string, RCEAction>;
 
 export function registerEditingActions() {
     if (getPermissionLevel(PERMISSIONS.editActiveDocument)) {
@@ -169,9 +169,9 @@ export function handlePlaceCursor(actionData: ActionData): string | undefined {
     const type = actionData.params.type;
 
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return contextFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return contextFailure(CONTEXT_NO_ACCESS);
 
     let basedLine: number, basedColumn: number;
@@ -192,10 +192,10 @@ export function handlePlaceCursor(actionData: ActionData): string | undefined {
         column -= 1;
     }
 
-    if(line >= document.lineCount || line < 0) {
+    if (line >= document.lineCount || line < 0) {
         return contextFailure(`Line is out of bounds, the last line of the document is ${document.lineCount}.`);
     }
-    if(column > document.lineAt(line).text.length || column < 0)
+    if (column > document.lineAt(line).text.length || column < 0)
         return contextFailure(`Column is out of bounds, the last column of line ${basedLine} is ${document.lineAt(line).text.length + 1}.`);
 
     const cursorPosition = new vscode.Position(line, column);
@@ -208,9 +208,9 @@ export function handlePlaceCursor(actionData: ActionData): string | undefined {
 
 export function handleGetCursor(_actionData: ActionData): string | undefined {
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return contextFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return contextFailure(CONTEXT_NO_ACCESS);
 
     const cursorPosition = getVirtualCursor()!;
@@ -225,9 +225,9 @@ export function handleInsertText(actionData: ActionData): string | undefined {
     const text: string = actionData.params.text;
 
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return contextFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return contextFailure(CONTEXT_NO_ACCESS);
 
     const insertStart = getVirtualCursor()!;
@@ -257,9 +257,9 @@ export function handleReplaceText(actionData: ActionData): string | undefined {
     const useRegex = actionData.params.useRegex ?? false;
 
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return contextFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return contextFailure(CONTEXT_NO_ACCESS);
 
     const regex = new RegExp(useRegex ? find : escapeRegExp(find), 'g');
@@ -310,9 +310,9 @@ export function handleDeleteText(actionData: ActionData): string | undefined {
     const useRegex = actionData.params?.useRegex ?? false;
 
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return contextFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return contextFailure(CONTEXT_NO_ACCESS);
 
     const regex = new RegExp(useRegex ? find : escapeRegExp(find), 'g');
@@ -355,9 +355,9 @@ export function handleFindText(actionData: ActionData): string | undefined {
     const useRegex = actionData.params?.useRegex ?? false;
 
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return contextFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return contextFailure(CONTEXT_NO_ACCESS);
 
     const regex = new RegExp(useRegex ? find : escapeRegExp(find), 'g');
@@ -391,9 +391,9 @@ export function handleFindText(actionData: ActionData): string | undefined {
 
 export function handleUndo(_actionData: ActionData): string | undefined {
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return contextFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return contextFailure(CONTEXT_NO_ACCESS);
 
     vscode.commands.executeCommand('undo').then(
@@ -415,9 +415,9 @@ export function handleUndo(_actionData: ActionData): string | undefined {
 
 export function handleSave(_actionData: ActionData): string | undefined {
     const document = vscode.window.activeTextEditor?.document;
-    if(document === undefined)
+    if (document === undefined)
         return contextFailure(CONTEXT_NO_ACTIVE_DOCUMENT);
-    if(!isPathNeuroSafe(document.fileName))
+    if (!isPathNeuroSafe(document.fileName))
         return contextFailure(CONTEXT_NO_ACCESS);
 
     NEURO.saving = true;
@@ -514,10 +514,10 @@ function formatContext(context: NeuroPositionContext): string {
  * @param editor The active text editor.
  */
 export function editorChangeHandler(editor: vscode.TextEditor | undefined) {
-    if(editor) {
+    if (editor) {
         const uri = editor.document.uri;
-        if(!NEURO.cursorOffsets.has(uri)) {
-            if(isPathNeuroSafe(uri.fsPath))
+        if (!NEURO.cursorOffsets.has(uri)) {
+            if (isPathNeuroSafe(uri.fsPath))
                 setVirtualCursor(editor.selection.active);
             else
                 setVirtualCursor(null);
@@ -534,26 +534,26 @@ export function editorChangeHandler(editor: vscode.TextEditor | undefined) {
  * @returns 
  */
 export function workspaceEditHandler(event: vscode.TextDocumentChangeEvent) {
-    if(event.contentChanges.length === 0) return;
-    if(event.document !== vscode.window.activeTextEditor?.document) return;
-    if(!getPermissionLevel(PERMISSIONS.editActiveDocument)) return;
+    if (event.contentChanges.length === 0) return;
+    if (event.document !== vscode.window.activeTextEditor?.document) return;
+    if (!getPermissionLevel(PERMISSIONS.editActiveDocument)) return;
 
     const initialCursorOffset = NEURO.cursorOffsets.get(event.document.uri);
-    if(initialCursorOffset === undefined || initialCursorOffset === null) return;
+    if (initialCursorOffset === undefined || initialCursorOffset === null) return;
 
-    for(const change of event.contentChanges) {
+    for (const change of event.contentChanges) {
         logOutput('DEBUG', `Change detected in document ${event.document.fileName}: ${JSON.stringify(change)}`);
 
         const cursorOffset = NEURO.cursorOffsets.get(event.document.uri)!;
         const startOffset = event.document.offsetAt(change.range.start);
 
-        if(startOffset > cursorOffset)
+        if (startOffset > cursorOffset)
             // Change is after the cursor, no need to update it
             continue;
 
         const endOffset = change.rangeOffset + change.rangeLength;
 
-        if(endOffset > cursorOffset) {
+        if (endOffset > cursorOffset) {
             // Change includes the cursor, place it at the end of the change
             setVirtualCursor(event.document.positionAt(change.rangeOffset + change.text.length));
         }
@@ -567,11 +567,11 @@ export function workspaceEditHandler(event: vscode.TextDocumentChangeEvent) {
 
 export function moveNeuroCursorHere() {
     const editor = vscode.window.activeTextEditor;
-    if(!editor) {
+    if (!editor) {
         vscode.window.showErrorMessage('No active text editor');
         return;
     }
-    if(!isPathNeuroSafe(editor.document.fileName)) {
+    if (!isPathNeuroSafe(editor.document.fileName)) {
         vscode.window.showErrorMessage(NEURO.currentController + ' does not have permission to access this file');
         return;
     }

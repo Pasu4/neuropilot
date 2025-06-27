@@ -1,4 +1,4 @@
-import { Status, RefType } from './git';
+import { Status, RefType } from './git.d';
 
 export const StatusStrings: Record<Status, string> = {
     [Status.INDEX_MODIFIED]:     'Index modified',

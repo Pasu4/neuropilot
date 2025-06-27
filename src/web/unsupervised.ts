@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
-import { NEURO } from './constants';
-import { handleRunTask, registerTaskActions, taskHandlers } from './tasks';
-import { fileActions, registerFileActions } from './file_actions';
-import { gitActions, registerGitActions } from './git';
-import { editingActions, registerEditingActions } from './editing';
-import { ActionData, RCEAction } from './neuro_client_helper';
-import { registerTerminalActions, terminalAccessHandlers } from './pseudoterminal';
-import { lintActions, registerLintActions } from './lint_problems';
-import { cancelRequestAction, createRceRequest, revealRceNotification } from './rce';
+import { NEURO } from '../constants';
+import { fileActions, registerFileActions } from '../file_actions';
+import { editingActions, registerEditingActions } from '../editing';
+import { ActionData, RCEAction } from '../neuro_client_helper';
+import { lintActions, registerLintActions } from '../lint_problems';
+import { cancelRequestAction, createRceRequest, revealRceNotification } from '../rce';
 import { validate } from 'jsonschema';
-import { CONFIG, getPermissionLevel, PermissionLevel, PERMISSIONS } from './config';
-import { checkWorkspaceTrust } from './utils';
+import { CONFIG, getPermissionLevel, PermissionLevel } from '../config';
+
+/**
+ * Web portion
+ */
 
 /**
  * Register unsupervised actions with the Neuro API.
@@ -19,11 +19,8 @@ import { checkWorkspaceTrust } from './utils';
 
 const neuroActions: Record<string, RCEAction> = {
     'cancel_request': cancelRequestAction,
-    ...gitActions,
     ...fileActions,
-    ...taskHandlers,
     ...editingActions,
-    ...terminalAccessHandlers,
     ...lintActions,
 };
 
@@ -34,10 +31,7 @@ export function registerUnsupervisedActions() {
     NEURO.client?.unregisterActions(actionKeys);
 
     registerFileActions();
-    registerGitActions();
-    registerTaskActions();
     registerEditingActions();
-    registerTerminalActions();
     registerLintActions();
 }
 
@@ -47,24 +41,10 @@ export function registerUnsupervisedActions() {
  */
 export function registerUnsupervisedHandlers() {
     NEURO.client?.onAction(async (actionData: ActionData) => {
-        if (actionKeys.includes(actionData.name) || NEURO.tasks.find(task => task.id === actionData.name)) {
+        if (actionKeys.includes(actionData.name)) {
             NEURO.actionHandled = true;
 
-            let action: RCEAction;
-            if (actionKeys.includes(actionData.name)) {
-                action = neuroActions[actionData.name];
-            }
-            else {
-                const task = NEURO.tasks.find(task => task.id === actionData.name)!;
-                action = {
-                    name: task.id,
-                    description: task.description,
-                    permissions: [PERMISSIONS.runTasks],
-                    handler: handleRunTask,
-                    validator: [checkWorkspaceTrust],
-                    promptGenerator: () => `run the task "${task.id}".`,
-                };
-            }
+            const action: RCEAction = neuroActions[actionData.name];
 
             const effectivePermission = action.permissions.length > 0 ? getPermissionLevel(...action.permissions) : action.defaultPermission ?? PermissionLevel.COPILOT;
             if (effectivePermission === PermissionLevel.OFF) {

@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 
 import { NEURO } from './constants';
-import { assert, filterFileContents, logOutput, simpleFileName } from './utils';
+import { filterFileContents, logOutput, simpleFileName } from './utils';
 import { CONFIG } from './config';
+import assert from 'node:assert';
 
 interface Participant {
     id: string;

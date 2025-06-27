@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "es2024",
+    "lib": [
+      "WebWorker"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "outDir": "./out/web" // ESBuild will bundle anyway
+  },
+  "include": [
+    "src/web/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "project-files",
+    "out"
+  ]
+}

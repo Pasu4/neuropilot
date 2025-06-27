@@ -4,7 +4,7 @@
  */
 
 import * as vscode from 'vscode';
-import { ActionData, ActionWithHandler } from './neuro_client_helper';
+import { ActionData, RCEAction } from './neuro_client_helper';
 import { NEURO } from './constants';
 import { logOutput } from './utils';
 import { CONFIG, PermissionLevel } from './config';
@@ -42,7 +42,7 @@ export interface RceRequest {
     notificationVisible: boolean;
 }
 
-export const cancelRequestAction: ActionWithHandler = {
+export const cancelRequestAction: RCEAction = {
     name: 'cancel_request',
     description: 'Cancel the current request.',
     permissions: [],
@@ -101,8 +101,8 @@ export function createRceRequest(
         notificationVisible: false,
 
         // these immediately get replaced synchronously, this is just so we don't have them be nullable in the type
-        resolve: () => {},
-        attachNotification: async () => {},
+        resolve: () => { },
+        attachNotification: async () => { },
     };
 
     const promise = new Promise<void>((resolve) => {
@@ -165,7 +165,7 @@ export function createRceRequest(
  * Reveals the RCE notification for the current request if it is not already visible.
  */
 export function revealRceNotification(): void {
-    if(!NEURO.rceRequest)
+    if (!NEURO.rceRequest)
         return;
 
     // don't show the notification if it's already open

@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { NeuroClient } from 'neuro-game-sdk';
-import { TerminalSession } from './utils';
+import { TerminalSession } from './pseudoterminal';
 import { RceRequest } from './rce';
+import type { GitExtension } from './types/git.d';
 
 export interface NeuroTask {
     id: string;
@@ -89,4 +90,14 @@ export const NEURO: Neuro = {
     cursorOffsets: new Map(),
     cursorDecorationType: null,
     currentController: null,
+};
+
+interface ExtensionDependencies {
+    copilotChat: boolean;
+    git: GitExtension | null;
+}
+
+export const EXTENSIONS: ExtensionDependencies = {
+    copilotChat: false,
+    git: null,
 };
