@@ -1,16 +1,30 @@
 import * as vscode from 'vscode';
-import { NEURO } from './constants';
-import { GitExtension, Change, ForcePushMode, CommitOptions, Commit, Repository } from './types/git';
+import { EXTENSIONS, NEURO } from './constants';
+import type { Change, CommitOptions, Commit, Repository, API } from './types/git.d';
+import { ForcePushMode } from './types/git.d';
 import { StatusStrings, RefTypeStrings } from './types/git_status';
-import { logOutput, simpleFileName, isPathNeuroSafe, normalizePath, getWorkspacePath, assert } from './utils';
-import { ActionData, ActionValidationResult, actionValidationAccept, actionValidationFailure, ActionWithHandler, contextFailure, stripToActions } from './neuro_client_helper';
+import { logOutput, simpleFileName, isPathNeuroSafe, normalizePath, getWorkspacePath } from './utils';
+import { ActionData, ActionValidationResult, actionValidationAccept, actionValidationFailure, RCEAction, contextFailure, stripToActions } from './neuro_client_helper';
 import { PERMISSIONS, getPermissionLevel } from './config';
+import assert from 'node:assert';
 
 /* All actions located in here requires neuropilot.permission.gitOperations to be enabled. */
 
 // Get the Git extension
-const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git')!.exports;
-const git = gitExtension.getAPI(1);
+let git: API | null = null;
+let repo: Repository | null = null;
+
+export function getGitExtension() {
+    if (EXTENSIONS.git) {
+        git = EXTENSIONS.git.getAPI(1);
+        logOutput('DEBUG', 'Git extension obtained.');
+        repo = git.repositories[0];
+        logOutput('DEBUG', 'Git repo obtained.');
+    } else {
+        git = null;
+        repo = null;
+    }
+}
 
 function gitValidator(_actionData: ActionData): ActionValidationResult {
     if (!git)
@@ -469,10 +483,10 @@ export const gitActions = {
         promptGenerator: 'abort the current merge operation.',
         validator: [gitValidator],
     },
-} satisfies Record<string, ActionWithHandler>;
+} satisfies Record<string, RCEAction>;
 
 // Get the current Git repository
-let repo: Repository | undefined = git.repositories[0];
+// let repo: Repository | undefined = git.repositories[0];
 // Handle git repo checks in each handler
 // eg.
 // if (!git)
@@ -480,68 +494,70 @@ let repo: Repository | undefined = git.repositories[0];
 
 // Register all git commands
 export function registerGitActions() {
-    if (getPermissionLevel(PERMISSIONS.gitOperations)) {
-        NEURO.client?.registerActions(stripToActions([
-            gitActions.init_git_repo,
-        ]));
+    if (git) {
+        if (getPermissionLevel(PERMISSIONS.gitOperations)) {
+            NEURO.client?.registerActions(stripToActions([
+                gitActions.init_git_repo,
+            ]));
 
-        const root = vscode.workspace.workspaceFolders?.[0].uri;
-        if (!root) return;
+            const root = vscode.workspace.workspaceFolders?.[0].uri;
+            if (!root) return;
 
-        git.openRepository(root).then((r) => {
-            if (r === null) {
-                repo = undefined;
-                return;
-            }
-
-            repo = r;
-
-            if (repo) {
-                NEURO.client?.registerActions(stripToActions([
-                    gitActions.add_file_to_git,
-                    gitActions.make_git_commit,
-                    gitActions.merge_to_current_branch,
-                    gitActions.git_status,
-                    gitActions.remove_file_from_git,
-                    gitActions.delete_git_branch,
-                    gitActions.switch_git_branch,
-                    gitActions.new_git_branch,
-                    gitActions.diff_files,
-                    gitActions.git_log,
-                    gitActions.git_blame,
-                ]));
-
-                if (getPermissionLevel(PERMISSIONS.gitTags)) {
-                    NEURO.client?.registerActions(stripToActions([
-                        gitActions.tag_head,
-                        gitActions.delete_tag,
-                    ]));
+            git.openRepository(root).then((r) => {
+                if (r === null) {
+                    repo = null;
+                    return;
                 }
 
-                if (getPermissionLevel(PERMISSIONS.gitConfigs)) {
-                    NEURO.client?.registerActions(stripToActions([
-                        gitActions.set_git_config,
-                        gitActions.get_git_config,
-                    ]));
-                }
+                repo = r;
 
-                if (getPermissionLevel(PERMISSIONS.gitRemotes)) {
+                if (repo) {
                     NEURO.client?.registerActions(stripToActions([
-                        gitActions.fetch_git_commits,
-                        gitActions.pull_git_commits,
-                        gitActions.push_git_commits,
+                        gitActions.add_file_to_git,
+                        gitActions.make_git_commit,
+                        gitActions.merge_to_current_branch,
+                        gitActions.git_status,
+                        gitActions.remove_file_from_git,
+                        gitActions.delete_git_branch,
+                        gitActions.switch_git_branch,
+                        gitActions.new_git_branch,
+                        gitActions.diff_files,
+                        gitActions.git_log,
+                        gitActions.git_blame,
                     ]));
 
-                    if (getPermissionLevel(PERMISSIONS.editRemoteData)) {
+                    if (getPermissionLevel(PERMISSIONS.gitTags)) {
                         NEURO.client?.registerActions(stripToActions([
-                            gitActions.add_git_remote,
-                            gitActions.remove_git_remote,
-                            gitActions.rename_git_remote,
+                            gitActions.tag_head,
+                            gitActions.delete_tag,
                         ]));
                     }
+
+                    if (getPermissionLevel(PERMISSIONS.gitConfigs)) {
+                        NEURO.client?.registerActions(stripToActions([
+                            gitActions.set_git_config,
+                            gitActions.get_git_config,
+                        ]));
+                    }
+
+                    if (getPermissionLevel(PERMISSIONS.gitRemotes)) {
+                        NEURO.client?.registerActions(stripToActions([
+                            gitActions.fetch_git_commits,
+                            gitActions.pull_git_commits,
+                            gitActions.push_git_commits,
+                        ]));
+
+                        if (getPermissionLevel(PERMISSIONS.editRemoteData)) {
+                            NEURO.client?.registerActions(stripToActions([
+                                gitActions.add_git_remote,
+                                gitActions.remove_git_remote,
+                                gitActions.rename_git_remote,
+                            ]));
+                        }
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 }
 
@@ -557,8 +573,8 @@ export function handleNewGitRepo(_actionData: ActionData): string | undefined {
 
     const folderPath = workspaceFolders[0].uri.fsPath;
 
-    git.init(vscode.Uri.file(folderPath)).then(() => {
-        repo = git.repositories[0]; // Update the repo reference to the new repository, just in case
+    git!.init(vscode.Uri.file(folderPath)).then(() => {
+        repo = git!.repositories[0]; // Update the repo reference to the new repository, just in case
         registerGitActions(); // Re-register commands
         NEURO.client?.sendContext('Initialized a new Git repository in the workspace folder. You should now be able to use git commands.');
     }, (erm: string) => {

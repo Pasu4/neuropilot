@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import { NEURO } from './constants';
 import { combineGlobLines, filterFileContents, getFence, getVirtualCursor, getWorkspacePath, isPathNeuroSafe, logOutput, normalizePath } from './utils';
-import { ActionData, contextNoAccess, ActionWithHandler, actionValidationFailure, actionValidationAccept, ActionValidationResult, stripToActions } from './neuro_client_helper';
+import { ActionData, contextNoAccess, RCEAction, actionValidationFailure, actionValidationAccept, ActionValidationResult, stripToActions } from './neuro_client_helper';
 import { CONFIG, PERMISSIONS, getPermissionLevel } from './config';
 
 /**
@@ -77,9 +77,10 @@ export const fileActions = {
         handler: handleGetFiles,
         validator: [() => {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-            if(workspaceFolder === undefined)
+            if (workspaceFolder === undefined)
                 return actionValidationFailure('No open workspace to get files from.');
-            return actionValidationAccept(); },
+            return actionValidationAccept();
+        },
         ],
         promptGenerator: 'get a list of files in the workspace.',
     },
@@ -160,30 +161,30 @@ export const fileActions = {
         validator: [neuroSafeDeleteValidation],
         promptGenerator: (actionData: ActionData) => `delete "${actionData.params?.pathToDelete}".`,
     },
-} satisfies Record<string, ActionWithHandler>;
+} satisfies Record<string, RCEAction>;
 
 export function registerFileActions() {
-    if(getPermissionLevel(PERMISSIONS.openFiles)) {
+    if (getPermissionLevel(PERMISSIONS.openFiles)) {
         NEURO.client?.registerActions(stripToActions([
             fileActions.get_files,
             fileActions.open_file,
         ]));
     }
 
-    if(getPermissionLevel(PERMISSIONS.create)) {
+    if (getPermissionLevel(PERMISSIONS.create)) {
         NEURO.client?.registerActions(stripToActions([
             fileActions.create_file,
             fileActions.create_folder,
         ]));
     }
 
-    if(getPermissionLevel(PERMISSIONS.rename)) {
+    if (getPermissionLevel(PERMISSIONS.rename)) {
         NEURO.client?.registerActions(stripToActions([
             fileActions.rename_file_or_folder,
         ]));
     }
 
-    if(getPermissionLevel(PERMISSIONS.delete)) {
+    if (getPermissionLevel(PERMISSIONS.delete)) {
         NEURO.client?.registerActions(stripToActions([
             fileActions.delete_file_or_folder,
         ]));
@@ -194,7 +195,7 @@ export function handleCreateFile(actionData: ActionData): string | undefined {
     const relativePathParam = actionData.params.filePath;
     const relativePath = normalizePath(relativePathParam).replace(/^\//, '');
     const absolutePath = getWorkspacePath() + '/' + relativePath;
-    if(!isPathNeuroSafe(absolutePath))
+    if (!isPathNeuroSafe(absolutePath))
         return contextNoAccess(absolutePath);
 
     checkAndOpenFileAsync(absolutePath, relativePath);
@@ -226,7 +227,7 @@ export function handleCreateFile(actionData: ActionData): string | undefined {
         NEURO.client?.sendContext(`Created file ${relativePath}`);
 
         // Open the file if Neuro has permission to do so
-        if(!getPermissionLevel(PERMISSIONS.openFiles))
+        if (!getPermissionLevel(PERMISSIONS.openFiles))
             return;
 
         try {
@@ -340,7 +341,7 @@ export function handleDeleteFileOrFolder(actionData: ActionData): string | undef
         }
 
         // Check for correct recursive parameter
-        if(stat.type === vscode.FileType.Directory && !recursive) {
+        if (stat.type === vscode.FileType.Directory && !recursive) {
             NEURO.client?.sendContext(`Could not delete: ${relativePath} is a directory cannot be deleted without the "recursive" parameter`);
             return;
         }
@@ -371,10 +372,10 @@ export function handleGetFiles(_actionData: ActionData): string | undefined {
                     const aParts = a.split('/');
                     const bParts = b.split('/');
 
-                    for(let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
-                        if(aParts[i] !== bParts[i]) {
-                            if(aParts.length === i + 1) return -1;
-                            if(bParts.length === i + 1) return 1;
+                    for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
+                        if (aParts[i] !== bParts[i]) {
+                            if (aParts.length === i + 1) return -1;
+                            if (bParts.length === i + 1) return 1;
                             return aParts[i].localeCompare(bParts[i]);
                         }
                     }
@@ -392,7 +393,7 @@ export function handleOpenFile(actionData: ActionData): string | undefined {
     const relativePath = actionData.params.filePath;
 
     const uri = vscode.Uri.file(getWorkspacePath() + '/' + normalizePath(relativePath));
-    if(!isPathNeuroSafe(uri.fsPath))
+    if (!isPathNeuroSafe(uri.fsPath))
         return contextNoAccess(uri.fsPath);
 
     openFileAsync();

@@ -475,7 +475,7 @@ Note that this only returns diagnostics of files that are loaded in the current 
 
 This extension uses the [TypeScript/JavaScript SDK](https://github.com/AriesAlex/typescript-neuro-game-sdk) by [AriesAlex](https://github.com/AriesAlex).
 
-Documentation by @KTrain5169.
+Documentation by [@KTrain5169](https://github.com/KTrain5169).
 
 Extension icon by Xaendril.
 

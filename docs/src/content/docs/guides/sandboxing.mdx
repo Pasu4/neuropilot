@@ -7,7 +7,7 @@ import { Aside } from '@astrojs/starlight/components'
 
 <Aside>
 
-This page is minimalistic because we expect that users want to be able to run this extension in a sandboxed environment, but we didn't initially take this into account.
+This page is minimalistic because we expect that users want to be able to run this extension in a sandboxed environment, but we didn't initially take this into account (somewhat).
 
 We plan on expanding options to allow local Neuro API server compatibility with remote sandboxed environments, without requiring it to be exposed to the internet.
 You can track its progress on [issue #32 on the NeuroPilot repository](https://github.com/VSC-NeuroPilot/neuropilot/issue/32).
@@ -26,7 +26,7 @@ We'll be using Oracle VirtualBox for this example.
 We'll assume that you have set up a virtual machine and figured out a way to connect to it; whether that be SSH or Tunnels.
 You can find guides online if you don't know how.
 
-In order to not have to expose the Neuro API server to the internet, we'll use a **Host-Only Adapter** network, which essentially creates a local system.
+In order to not have to expose the Neuro API server to the internet, we'll use a **Host-Only Adapter** network, which essentially creates a local network to two-way interact with a VM.
 
 1. Open your VM's settings and navigate to the Network section.
 
@@ -44,16 +44,28 @@ If you're comfortable with not having internet access in the VM, you can stay in
 
 3. After selecting that, make sure you note down the name of the adapter.
 
-4. On your host machine, open your console and run `ipconfig /all` (Windows) or `ip a` (macOS/Linux). Then, take note of what your assigned IP is for the adapter that has the description containing the name you noted down earlier.
+4. On your host machine, open your console and run `ipconfig /all` (Windows) or `ip a` (macOS/Linux).
 
 5. Take note of the IP listed there. If you're on Windows and ran `ipconfig /all`, note down the IPv4 address that has `(Preferred)` next to it.
 
-6. Start your Neuro API server on that address. If you're using one of the testing tools on the official API repo's README, you should be able to pass a CLI flag to spawn it on a certain host.
+6. Start your Neuro API server on that address. If you're using one of the testing tools on the official API repo's README, you should be able to pass a CLI flag to spawn it on a certain host. If you're Vedal and you're using Neuro, uhhh good luck :thumbsup:
 
 7. Now, connect to your virtual machine and install NeuroPilot.
 
 8. Open your settings, and go down to the [`NeuroPilot > Websocket Url`](/neuropilot/reference/settings#websocket-url).
 
-9. Add your IP address and host that you spawned your Neuro API server on, in the scheme of `ws://(host):(port)`.
+9. Add the host IP address and port that you spawned your Neuro API server on, in the scheme of `ws://(host):(port)`.
 
 10. Now, [attempt to reconnect](/neuropilot/reference/commands#reconnect). This should now connect to your Neuro API server as expected.
+
+## Web environment
+
+As of v2.2.0, NeuroPilot now has a separate Web build. It acts partially the same as the desktop mode, but loses access to certain features that cannot be ran in the Web environment.
+
+This includes:
+
+- Terminals & tasks
+- Git access (it *is* activated in certain situations, but debugging this in a test environment is impossible and also it functions slightly differently, therefore, for stability, it has been disabled.)
+- Copilot Chat window & inline completions (dependency extension can't be ran in the web environment)
+
+To use the web version, go to [vscode.dev](https://vscode.dev) (or any web build of VS Code, such as `github.dev`), and install NeuroPilot.

@@ -2,17 +2,14 @@ import * as vscode from 'vscode';
 import { NeuroClient } from 'neuro-game-sdk';
 import globToRegExp from 'glob-to-regexp';
 
-import { ChildProcessWithoutNullStreams } from 'child_process';
-
 import { NEURO } from './constants';
 import { CONFIG, getPermissionLevel, PERMISSIONS } from './config';
 
+import { ActionValidationResult, ActionData, actionValidationAccept, actionValidationFailure } from './neuro_client_helper';
+import assert from 'node:assert';
+
 export const REGEXP_ALWAYS = /^/;
 export const REGEXP_NEVER = /^\b$/;
-
-export function assert(obj: unknown): asserts obj {
-    if(!obj) throw new Error('Assertion failed');
-}
 
 export function logOutput(tag: string, message: string) {
     if(!NEURO.outputChannel) {
@@ -199,7 +196,7 @@ export function isPathNeuroSafe(path: string, checkPatterns = true): boolean {
     const includeRegExp: RegExp = checkPatterns ? combineGlobLinesToRegExp(includePattern) : REGEXP_ALWAYS;
     const excludeRegExp: RegExp = checkPatterns && excludePattern ? combineGlobLinesToRegExp(excludePattern) : REGEXP_NEVER;
 
-    if (CONFIG.allowUnsafePaths === true) {
+    if (CONFIG.allowUnsafePaths === true && vscode.workspace.isTrusted === true) {
         return includeRegExp.test(normalizedPath)       // Check against include pattern
             && !excludeRegExp.test(normalizedPath);     // Check against exclude pattern
     }
@@ -213,21 +210,6 @@ export function isPathNeuroSafe(path: string, checkPatterns = true): boolean {
         && !normalizedPath.includes('$')            // Prevent access to environment variables
         && includeRegExp.test(normalizedPath)       // Check against include pattern
         && !excludeRegExp.test(normalizedPath);     // Check against exclude pattern
-}
-
-/*
- * Extended interface for terminal sessions.
- * We now explicitly store the event emitter along with the pseudoterminal.
- */
-export interface TerminalSession {
-    terminal: vscode.Terminal;
-    pty: vscode.Pseudoterminal;
-    emitter: vscode.EventEmitter<string>;
-    outputStdout?: string;
-    outputStderr?: string;
-    processStarted: boolean;
-    shellProcess?: ChildProcessWithoutNullStreams;
-    shellType: string;
 }
 
 export const delayAsync = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -397,4 +379,14 @@ export function getVirtualCursor(): vscode.Position | null | undefined {
     else {
         return editor.document.positionAt(result);
     }
+}
+
+/**
+ * Checks workspace trust settings and returns an ActionValidationResult accordingly.
+ */
+export function checkWorkspaceTrust(_actionData: ActionData): ActionValidationResult {
+    if (vscode.workspace.isTrusted) {
+        return actionValidationAccept();
+    }
+    return actionValidationFailure('You are in an untrusted workspace.');
 }

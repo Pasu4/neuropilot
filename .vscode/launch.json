@@ -6,7 +6,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Run Extension",
+			"name": "Run Desktop Extension",
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
@@ -16,13 +16,30 @@
 				// "--disable-extensions"
 			],
 			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
+				"${workspaceFolder}/out/**/*.js",
+				"!${workspaceFolder}/out/web/**"
 			],
-			"preLaunchTask": "npm: watch"
+			"preLaunchTask": "watch:desktop"
 		},
 		{
-      		"command": "./docs/node_modules/.bin/astro dev",
+			"name": "Run Web Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"debugWebWorkerHost": true,
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"${workspaceFolder}/playground",
+				"--extensionDevelopmentKind=web"
+			],
+			"outFiles": [
+				"${workspaceFolder}/out/web/**/*.js"
+			],
+			"preLaunchTask": "watch:web"
+		},
+		{
+      		"command": "./node_modules/.bin/astro dev",
       		"name": "Docs development server (Astro)",
+			"cwd": "${workspaceFolder}/docs",
       		"request": "launch",
       		"type": "node-terminal"
     	}

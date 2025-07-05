@@ -4,10 +4,12 @@
  */
 
 import * as vscode from 'vscode';
-import { ActionData, ActionWithHandler } from './neuro_client_helper';
+import { ActionData, RCEAction } from './neuro_client_helper';
 import { NEURO } from './constants';
-import { logOutput } from './utils';
-import { CONFIG, PermissionLevel } from './config';
+import { checkWorkspaceTrust, logOutput } from './utils';
+import { CONFIG, getPermissionLevel, PermissionLevel, PERMISSIONS } from './config';
+import { handleRunTask } from './tasks';
+import { validate } from 'jsonschema';
 
 /**
  * A prompt parameter can either be a string or a function that converts ActionData into a prompt string.
@@ -42,7 +44,7 @@ export interface RceRequest {
     notificationVisible: boolean;
 }
 
-export const cancelRequestAction: ActionWithHandler = {
+export const cancelRequestAction: RCEAction = {
     name: 'cancel_request',
     description: 'Cancel the current request.',
     permissions: [],
@@ -101,8 +103,8 @@ export function createRceRequest(
         notificationVisible: false,
 
         // these immediately get replaced synchronously, this is just so we don't have them be nullable in the type
-        resolve: () => {},
-        attachNotification: async () => {},
+        resolve: () => { },
+        attachNotification: async () => { },
     };
 
     const promise = new Promise<void>((resolve) => {
@@ -165,7 +167,7 @@ export function createRceRequest(
  * Reveals the RCE notification for the current request if it is not already visible.
  */
 export function revealRceNotification(): void {
-    if(!NEURO.rceRequest)
+    if (!NEURO.rceRequest)
         return;
 
     // don't show the notification if it's already open
@@ -225,4 +227,95 @@ export function denyRceRequest(): void {
     NEURO.client?.sendContext('Vedal has denied your request.');
 
     clearRceRequest();
+}
+
+/**
+ * RCE action handler code for unsupervised requests.
+ * Intended to be used with something like `NEURO.client?.onAction(async (actionData: ActionData) => await RCEActionHandler(actionData, actionList, true))
+ * @param actionData The action data from Neuro.
+ * @param actionList The list of actions currently registered.
+ * @param checkTasks Whether or not to check for tasks.
+ */
+export async function RCEActionHandler(actionData: ActionData, actionList: Record<string, RCEAction>, checkTasks: boolean) {
+    const actionKeys = Object.keys(actionList);
+    if (actionKeys.includes(actionData.name) || checkTasks === true && NEURO.tasks.find(task => task.id === actionData.name)) {
+        NEURO.actionHandled = true;
+
+        let action: RCEAction;
+        if (actionKeys.includes(actionData.name)) {
+            action = actionList[actionData.name];
+        }
+        else {
+            const task = NEURO.tasks.find(task => task.id === actionData.name)!;
+            action = {
+                name: task.id,
+                description: task.description,
+                permissions: [PERMISSIONS.runTasks],
+                handler: handleRunTask,
+                validator: [checkWorkspaceTrust],
+                promptGenerator: () => `run the task "${task.id}".`,
+            };
+        }
+
+        const effectivePermission = action.permissions.length > 0 ? getPermissionLevel(...action.permissions) : action.defaultPermission ?? PermissionLevel.COPILOT;
+        if (effectivePermission === PermissionLevel.OFF) {
+            const offPermission = action.permissions.find(permission => getPermissionLevel(permission) === PermissionLevel.OFF);
+            NEURO.client?.sendActionResult(actionData.id, true, `Action failed: You don't have permission to ${offPermission?.infinitive ?? 'execute this action'}.`);
+            return;
+        }
+
+        // Validate schema
+        if (action.schema) {
+            const schemaValidationResult = validate(actionData.params, action.schema, { required: true });
+            if (!schemaValidationResult.valid) {
+                const message = 'Action failed: ' + schemaValidationResult.errors[0]?.stack;
+                NEURO.client?.sendActionResult(actionData.id, false, message);
+                return;
+            }
+        }
+
+        // Validate custom
+        if (action.validator) {
+            for (const validate of action.validator) {
+                const actionResult = await validate(actionData);
+                if (!actionResult.success) {
+                    NEURO.client?.sendActionResult(actionData.id, !(actionResult.retry ?? false), actionResult.message);
+                    return;
+                }
+            }
+        }
+
+        if (effectivePermission === PermissionLevel.AUTOPILOT) {
+            const result = action.handler(actionData);
+            NEURO.client?.sendActionResult(actionData.id, true, result);
+        }
+        else { // permissionLevel === PermissionLevel.COPILOT
+            if (NEURO.rceRequest) {
+                NEURO.client?.sendActionResult(actionData.id, true, 'Action failed: Already waiting for permission to run another action.');
+                return;
+            }
+
+            // literally why can't we use " 'x wants to' + typeof action.promptGenerator === 'string' "
+            const prompt = typeof action.promptGenerator === 'string'
+                ? NEURO.currentController + ' wants to ' + (action.promptGenerator as string).trim()
+                : NEURO.currentController + ' wants to ' + (action.promptGenerator as (actionData: ActionData) => string)(actionData).trim();
+
+            createRceRequest(
+                prompt,
+                () => action.handler(actionData),
+            );
+
+            NEURO.statusBarItem!.tooltip = new vscode.MarkdownString(prompt);
+            NEURO.client?.registerActions([cancelRequestAction]);
+            NEURO.statusBarItem!.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+            NEURO.statusBarItem!.color = new vscode.ThemeColor('statusBarItem.warningForeground');
+
+            // Show the RCE dialog immediately if the config says so
+            if (!CONFIG.hideCopilotRequests)
+                revealRceNotification();
+
+            // End of added code.
+            NEURO.client?.sendActionResult(actionData.id, true, 'Requested permission to run action.');
+        }
+    }
 }

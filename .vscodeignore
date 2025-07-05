@@ -3,8 +3,17 @@ playground/**
 .gitignore
 eslint.config.mjs
 tsconfig.json
+tsconfig.web.json
 src/
+node_modules/
 *.vsix
+
+# Project files
+project-files/
+
+# Build files
+esbuild.{m,c,}js
+esbuild-configs/
 
 # Krita
 *.kra

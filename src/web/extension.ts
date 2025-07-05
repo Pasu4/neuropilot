@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
-import { reloadTasks, taskEndedHandler } from './tasks';
-import { emergencyTerminalShutdown, saveContextForTerminal } from './pseudoterminal';
-import { createClient, isPathNeuroSafe, setVirtualCursor } from './utils';
-import { NEURO } from './constants';
+import { createClient, isPathNeuroSafe, setVirtualCursor } from '../utils';
+import { NEURO } from '../constants';
 import {
     initializeCommonState,
     setupCommonProviders,
@@ -12,10 +10,9 @@ import {
     createStatusBarItem,
     deactivate as commonDeactivate,
     registerDocsLink,
-    getDecorationRenderOptions,
     obtainExtensionState,
-} from './shared/extension-common';
-import { registerChatParticipant } from './chat';
+    getDecorationRenderOptions,
+} from '../shared/extension-common';
 
 export { registerDocsLink };
 
@@ -32,15 +29,8 @@ export function activate(context: vscode.ExtensionContext) {
     // Setup event handlers
     context.subscriptions.push(...setupCommonEventHandlers());
 
-    // Desktop-specific handlers
-    context.subscriptions.push(vscode.tasks.onDidEndTask(taskEndedHandler));
-
-    // Chat participant (desktop-specific setup)
-    registerChatParticipant(context);
-    saveContextForTerminal(context);
-
     // Setup client connected handlers
-    setupClientConnectedHandlers(reloadTasks); // reloadTasks added to set it up at the same time
+    setupClientConnectedHandlers();
 
     // Create status bar item
     createStatusBarItem(context);
@@ -51,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Create client
     createClient();
 
-    // Create cursor decoration (desktop-specific)
+    // Create cursor decoration (web-specific)
     NEURO.cursorDecorationType = vscode.window.createTextEditorDecorationType(getDecorationRenderOptions(context));
 
     // Set initial virtual cursor
@@ -61,6 +51,5 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-    emergencyTerminalShutdown();
     commonDeactivate();
 }
